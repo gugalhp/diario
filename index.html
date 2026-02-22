@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário Espiritual 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #f0f0f0; }
+
+  #setup-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+  .setup-box { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:20px; padding:36px; max-width:520px; width:100%; }
+  .setup-box h2 { font-size:22px; margin-bottom:8px; color:#f59e0b; }
+  .setup-step { margin-bottom:16px; }
+  .setup-step label { display:block; font-size:12px; color:#94a3b8; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; }
+  .setup-input { width:100%; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:#fff; font-size:14px; outline:none; }
+  .setup-input::placeholder { color:#4a5568; }
+  .btn-connect { width:100%; padding:13px; border-radius:12px; border:none; background:#f59e0b; color:#000; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; }
+  .setup-error { color:#ef4444; font-size:13px; margin-top:10px; display:none; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px; }
+  .setup-loading { color:#94a3b8; font-size:13px; margin-top:10px; display:none; }
+  .step-num { display:inline-block; background:#f59e0b; color:#000; border-radius:50%; width:22px; height:22px; text-align:center; line-height:22px; font-size:12px; font-weight:700; margin-right:6px; }
+  code { background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:12px; color:#fbbf24; }
+  .help-link { color:#60a5fa; }
+
+  #app { display:none; }
+  .header { background:rgba(255,255,255,0.05); border-bottom:1px solid rgba(255,255,255,0.1); padding:16px 24px; }
+  .header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .view-btn { padding:8px 18px; border-radius:20px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
+  .view-btn.active { background:#f59e0b; color:#000; }
+  .view-btn.inactive { background:rgba(255,255,255,0.1); color:#fff; }
+  .container { max-width:900px; margin:0 auto; padding:20px 16px; }
+  .card { background:rgba(255,255,255,0.05); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1); }
+  .month-btn { padding:6px 14px; border-radius:20px; border:none; cursor:pointer; font-size:13px; transition:all 0.2s; margin:3px; }
+  .month-btn.active { background:#f59e0b; color:#000; font-weight:700; }
+  .month-btn.inactive { background:rgba(255,255,255,0.1); color:#e2e8f0; }
+  .day-btn { width:38px; height:38px; border-radius:8px; cursor:pointer; font-size:13px; transition:all 0.15s; display:inline-flex; align-items:center; justify-content:center; margin:3px; }
+  .search-input { flex:1; min-width:180px; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:#fff; font-size:14px; outline:none; }
+  .search-input::placeholder { color:#64748b; }
+  .role-select { padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(20,20,50,0.95); color:#fff; font-size:13px; cursor:pointer; }
+  .person-row { display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:12px; cursor:pointer; transition:all 0.15s; user-select:none; margin-bottom:6px; }
+  .check-circle { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .role-card { flex:1; min-width:130px; background:rgba(255,255,255,0.05); border-radius:12px; padding:14px; margin:4px; }
+  .table-card { background:rgba(255,255,255,0.04); border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); }
+  .table-header { padding:12px 16px; background:rgba(255,255,255,0.06); font-size:13px; font-weight:700; color:#94a3b8; display:grid; grid-template-columns:1fr 60px 50px 110px; gap:8px; }
+  .table-row { padding:11px 16px; border-top:1px solid rgba(255,255,255,0.05); display:grid; grid-template-columns:1fr 60px 50px 110px; gap:8px; align-items:center; font-size:13px; }
+  .sync-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+  .sync-ok { background:#10b981; }
+  .sync-saving { background:#f59e0b; animation:pulse 1s infinite; }
+  .sync-err { background:#ef4444; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h2>⚙️ Configurar Firebase</h2>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:20px;line-height:1.7">
+      Conecte ao banco de dados para que todos vejam as mesmas marcações em tempo real.
+    </p>
+    <p style="font-size:13px;color:#e2e8f0;line-height:1.9;margin-bottom:20px">
+      <span class="step-num">1</span> Acesse <a href="https://console.firebase.google.com" target="_blank" class="help-link">console.firebase.google.com</a> e crie um projeto<br>
+      <span class="step-num">2</span> No menu lateral: <strong>Firestore Database → Criar banco → Modo de teste</strong><br>
+      <span class="step-num">3</span> Na tela inicial do projeto: clique no ícone <code>&lt;/&gt;</code> (ou vá em <strong>Configurações ⚙️ → Seus apps → Adicionar app</strong>)<br>
+      <span class="step-num">4</span> Copie o <code>apiKey</code>, <code>authDomain</code> e <code>projectId</code> que aparecerem
+    </p>
+
+    <div class="setup-step">
+      <label>API Key</label>
+      <input class="setup-input" id="cfg-apiKey" placeholder="AIzaSy...">
+    </div>
+    <div class="setup-step">
+      <label>Auth Domain</label>
+      <input class="setup-input" id="cfg-authDomain" placeholder="meu-projeto.firebaseapp.com">
+    </div>
+    <div class="setup-step">
+      <label>Project ID</label>
+      <input class="setup-input" id="cfg-projectId" placeholder="meu-projeto">
+    </div>
+
+    <button class="btn-connect" id="btn-connect">🔗 Conectar e abrir sistema</button>
+    <div class="setup-error" id="setup-error"></div>
+    <div class="setup-loading" id="setup-loading">⏳ Conectando ao Firebase...</div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0">
+    <p style="font-size:12px;color:#64748b">💡 A configuração fica salva no navegador — na próxima vez abre automaticamente.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-inner">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">✨</div>
+        <div>
+          <div style="font-size:20px;font-weight:bold;letter-spacing:1px">Diário Espiritual 2026</div>
+          <div style="font-size:12px;color:#94a3b8;display:flex;align-items:center">
+            <span class="sync-dot sync-ok" id="sync-dot"></span>
+            <span id="sync-text">Conectado</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="view-btn active" id="btn-marcar" onclick="setView('marcar')">✏️ Marcar</button>
+        <button class="view-btn inactive" id="btn-resumo" onclick="setView('resumo')">📊 Resumo</button>
+        <button onclick="resetConfig()" style="font-size:11px;background:rgba(255,255,255,0.07);border:none;color:#64748b;border-radius:8px;padding:5px 10px;cursor:pointer">⚙️ Config</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">Mês</div>
+      <div id="month-btns"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px" id="day-label">Dias selecionados: nenhum</div>
+        <button onclick="selectAllDays()" style="font-size:11px;background:rgba(255,255,255,0.1);border:none;color:#94a3b8;border-radius:8px;padding:4px 10px;cursor:pointer">Todos</button>
+      </div>
+      <div id="days-grid"></div>
+    </div>
+
+    <div id="view-marcar">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <input class="search-input" id="search" placeholder="🔍 Buscar pessoa..." oninput="render()">
+        <select class="role-select" id="role-filter" onchange="render()">
+          <option value="Todos">Todos</option>
+          <option value="Anjo">Anjo</option>
+          <option value="Coordenadora">Coordenadora</option>
+          <option value="Coordenador">Coordenador</option>
+          <option value="Acompanhador">Acompanhador</option>
+        </select>
+        <button onclick="markAll()" style="padding:10px 14px;border-radius:10px;border:none;background:#10b981;color:#fff;font-size:13px;cursor:pointer;font-weight:600">✅ Marcar todos</button>
+        <button onclick="clearAll()" style="padding:10px 14px;border-radius:10px;border:none;background:#ef4444;color:#fff;font-size:13px;cursor:pointer;font-weight:600">❌ Desmarcar</button>
+        <button onclick="toggleAddForm()" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:13px;cursor:pointer">➕ Adicionar</button>
+      </div>
+      <div id="add-form" style="display:none;background:rgba(255,255,255,0.08);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.2)">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="new-name" placeholder="Nome da pessoa" style="flex:1;min-width:180px;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;font-size:14px;outline:none">
+          <select id="new-role" style="padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(20,20,50,0.95);color:#fff;font-size:13px">
+            <option>Acompanhador</option><option>Anjo</option><option>Coordenadora</option><option>Coordenador</option>
+          </select>
+          <button onclick="addPerson()" style="padding:9px 18px;border-radius:8px;background:#f59e0b;border:none;color:#000;font-weight:700;cursor:pointer">Salvar</button>
+          <button onclick="toggleAddForm()" style="padding:9px 18px;border-radius:8px;background:rgba(255,255,255,0.1);border:none;color:#fff;cursor:pointer">Cancelar</button>
+        </div>
+      </div>
+      <div id="stats-bar" style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap"></div>
+      <div id="people-list"></div>
+    </div>
+
+    <div id="view-resumo" style="display:none">
+      <div id="resumo-title" style="margin-bottom:16px;font-size:16px;font-weight:700;color:#f59e0b"></div>
+      <div id="role-cards" style="display:flex;flex-wrap:wrap;margin-bottom:20px"></div>
+      <div class="table-card">
+        <div class="table-header"><span>Pessoa</span><span>Dias</span><span>%</span><span>Cargo</span></div>
+        <div id="resumo-table"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase Compat (funciona no escopo global, sem "module") -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+var MONTHS = [
+  {name:"Janeiro",days:31},{name:"Fevereiro",days:28},{name:"Março",days:31},
+  {name:"Abril",days:30},{name:"Maio",days:31},{name:"Junho",days:30},
+  {name:"Julho",days:31},{name:"Agosto",days:31},{name:"Setembro",days:30},
+  {name:"Outubro",days:31},{name:"Novembro",days:30},{name:"Dezembro",days:31}
+];
+var ROLE_COLORS = {
+  "Anjo":{badge:"#f59e0b"},"Coordenadora":{badge:"#ec4899"},
+  "Coordenador":{badge:"#8b5cf6"},"Acompanhador":{badge:"#0ea5e9"}
+};
+var DEFAULT_PEOPLE = [
+  {id:1,role:"Anjo",name:"Daniela Felix",isLeader:true},
+  {id:2,role:"Anjo",name:"Poliana Clarissa",isLeader:false},
+  {id:3,role:"Anjo",name:"Robson Gonzaga",isLeader:true},
+  {id:4,role:"Anjo",name:"Cleberson Rodrigues",isLeader:false},
+  {id:5,role:"Coordenadora",name:"Poliana Clarissa",isLeader:true},
+  {id:6,role:"Coordenadora",name:"Angélica",isLeader:false},
+  {id:7,role:"Coordenadora",name:"Taty do Sirlandio",isLeader:false},
+  {id:8,role:"Coordenadora",name:"Tatiane do Gustavo",isLeader:false},
+  {id:9,role:"Coordenador",name:"Cleberson",isLeader:true},
+  {id:10,role:"Coordenador",name:"Lucas da Angélica",isLeader:false},
+  {id:11,role:"Coordenador",name:"Sirlandio",isLeader:false},
+  {id:12,role:"Coordenador",name:"Gustavo",isLeader:false},
+  {id:13,role:"Acompanhador",name:"Angélica",isLeader:true},
+  {id:14,role:"Acompanhador",name:"Maria",isLeader:false},
+  {id:15,role:"Acompanhador",name:"Aline",isLeader:false},
+  {id:16,role:"Acompanhador",name:"Elaine",isLeader:false},
+  {id:17,role:"Acompanhador",name:"Tatiana do Vitor",isLeader:false},
+  {id:18,role:"Acompanhador",name:"Lucas da Angélica",isLeader:true},
+  {id:19,role:"Acompanhador",name:"Ricardo",isLeader:false},
+  {id:20,role:"Acompanhador",name:"Luccas (Aline)",isLeader:false},
+  {id:21,role:"Acompanhador",name:"Jailton",isLeader:false},
+  {id:22,role:"Acompanhador",name:"Vitor",isLeader:false},
+  {id:23,role:"Acompanhador",name:"Taty do Sirlandio",isLeader:true},
+  {id:24,role:"Acompanhador",name:"Célia",isLeader:false},
+  {id:25,role:"Acompanhador",name:"Michelly",isLeader:false},
+  {id:26,role:"Acompanhador",name:"Regina",isLeader:false},
+  {id:27,role:"Acompanhador",name:"Paula",isLeader:false},
+  {id:28,role:"Acompanhador",name:"Sirlândio",isLeader:true},
+  {id:29,role:"Acompanhador",name:"Henrique",isLeader:false},
+  {id:30,role:"Acompanhador",name:"Anderson da Michelly",isLeader:false},
+  {id:31,role:"Acompanhador",name:"Cleverson",isLeader:false},
+  {id:32,role:"Acompanhador",name:"Irineu",isLeader:false},
+  {id:33,role:"Acompanhador",name:"Paula",isLeader:true},
+  {id:34,role:"Acompanhador",name:"Tina",isLeader:false},
+  {id:35,role:"Acompanhador",name:"Samantha",isLeader:false},
+  {id:36,role:"Acompanhador",name:"Adriana do Adelson",isLeader:false},
+  {id:37,role:"Acompanhador",name:"Irineu Dos Reis",isLeader:true},
+  {id:38,role:"Acompanhador",name:"José",isLeader:false},
+  {id:39,role:"Acompanhador",name:"Sandro",isLeader:false},
+  {id:40,role:"Acompanhador",name:"Adelson",isLeader:false},
+  {id:41,role:"Acompanhador",name:"Célia",isLeader:true},
+  {id:42,role:"Acompanhador",name:"Adriana do Cristiano",isLeader:false},
+  {id:43,role:"Acompanhador",name:"Vanessa",isLeader:false},
+  {id:44,role:"Acompanhador",name:"Débora",isLeader:false},
+  {id:45,role:"Acompanhador",name:"Henrique",isLeader:true},
+  {id:46,role:"Acompanhador",name:"Cristiano",isLeader:false},
+  {id:47,role:"Acompanhador",name:"Eleanderson",isLeader:false},
+  {id:48,role:"Acompanhador",name:"Bruno",isLeader:false},
+  {id:49,role:"Acompanhador",name:"Maria",isLeader:true},
+  {id:50,role:"Acompanhador",name:"Priscila",isLeader:false},
+  {id:51,role:"Acompanhador",name:"Ana Paula Pó",isLeader:false},
+  {id:52,role:"Acompanhador",name:"Jaciene",isLeader:false},
+  {id:53,role:"Acompanhador",name:"Thalita",isLeader:false},
+  {id:54,role:"Acompanhador",name:"Ricardo",isLeader:true},
+  {id:55,role:"Acompanhador",name:"Celso",isLeader:false},
+  {id:56,role:"Acompanhador",name:"Carlos Pó",isLeader:false},
+  {id:57,role:"Acompanhador",name:"Jocival",isLeader:false},
+  {id:58,role:"Acompanhador",name:"Rodrigo",isLeader:false},
+  {id:59,role:"Acompanhador",name:"Tati do Gustavo",isLeader:true},
+  {id:60,role:"Acompanhador",name:"Karina",isLeader:false},
+  {id:61,role:"Acompanhador",name:"Liliane",isLeader:false},
+  {id:62,role:"Acompanhador",name:"Andrea do Ailton",isLeader:false},
+  {id:63,role:"Acompanhador",name:"Gustavo",isLeader:true},
+  {id:64,role:"Acompanhador",name:"Robson",isLeader:false},
+  {id:65,role:"Acompanhador",name:"Helio",isLeader:false},
+  {id:66,role:"Acompanhador",name:"Ailton",isLeader:false},
+  {id:67,role:"Acompanhador",name:"Aline do Luccas",isLeader:true},
+  {id:68,role:"Acompanhador",name:"Tamires",isLeader:false},
+  {id:69,role:"Acompanhador",name:"Luccas da Aline",isLeader:true},
+  {id:70,role:"Acompanhador",name:"Wellington",isLeader:false},
+  {id:71,role:"Acompanhador",name:"Samantha",isLeader:true},
+  {id:72,role:"Acompanhador",name:"Rosana",isLeader:false},
+  {id:73,role:"Acompanhador",name:"Sandro",isLeader:true},
+  {id:74,role:"Acompanhador",name:"Romario",isLeader:false}
+];
+
+var db = null;
+var people = DEFAULT_PEOPLE.slice();
+var marks = {};
+var selectedMonth = new Date().getMonth();
+var selectedDays = [new Date().getDate()];
+var currentView = 'marcar';
+var nextId = 75;
+var saveTimeout = null;
+
+function setSyncStatus(s, t) {
+  document.getElementById('sync-dot').className = 'sync-dot sync-' + s;
+  document.getElementById('sync-text').textContent = t;
+}
+
+function showErr(msg) {
+  var el = document.getElementById('setup-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('setup-loading').style.display = 'none';
+}
+
+function doConnect(cfg) {
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(cfg);
+    }
+    db = firebase.firestore();
+    db.collection('system').doc('ping').set({ ok: true })
+      .then(function() {
+        localStorage.setItem('fb_config', JSON.stringify(cfg));
+        initApp();
+      })
+      .catch(function(e) {
+        showErr('Erro ao conectar: ' + e.message + '. Verifique se o Firestore está em modo de teste.');
+      });
+  } catch(e) {
+    showErr('Erro: ' + e.message);
+  }
+}
+
+function connectFirebase() {
+  var apiKey     = document.getElementById('cfg-apiKey').value.trim();
+  var authDomain = document.getElementById('cfg-authDomain').value.trim();
+  var projectId  = document.getElementById('cfg-projectId').value.trim();
+  if (!apiKey || !authDomain || !projectId) { showErr('Preencha todos os campos.'); return; }
+  document.getElementById('setup-loading').style.display = 'block';
+  document.getElementById('setup-error').style.display = 'none';
+  doConnect({ apiKey: apiKey, authDomain: authDomain, projectId: projectId });
+}
+
+function resetConfig() {
+  if (confirm('Reconfigurar Firebase?')) { localStorage.removeItem('fb_config'); location.reload(); }
+}
+
+function initApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  setSyncStatus('saving', 'Carregando...');
+
+  db.collection('config').doc('people').get().then(function(snap) {
+    if (snap.exists) {
+      people = snap.data().list;
+      nextId = Math.max.apply(null, people.map(function(p) { return p.id; })) + 1;
+    } else {
+      db.collection('config').doc('people').set({ list: DEFAULT_PEOPLE });
+    }
+
+    db.collection('marks').doc('data').onSnapshot(function(snap) {
+      marks = snap.exists ? (snap.data().marks || {}) : {};
+      setSyncStatus('ok', 'Sincronizado');
+      render();
+      if (currentView === 'resumo') renderResumo();
+      buildDaysGrid();
+    }, function() {
+      setSyncStatus('err', 'Erro de conexão');
+    });
+
+    buildMonthBtns();
+    buildDaysGrid();
+    render();
+  });
+}
+
+function saveMarks() {
+  if (!db) return;
+  setSyncStatus('saving', 'Salvando...');
+  db.collection('marks').doc('data').set({ marks: marks })
+    .then(function() { setSyncStatus('ok', 'Sincronizado'); })
+    .catch(function() { setSyncStatus('err', 'Erro ao salvar'); });
+}
+
+function scheduleMarks() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveMarks, 600);
+}
+
+function savePeople() {
+  if (db) db.collection('config').doc('people').set({ list: people });
+}
+
+function markKey(m, d, pid) { return m + '-' + d + '-' + pid; }
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('view-marcar').style.display = v === 'marcar' ? 'block' : 'none';
+  document.getElementById('view-resumo').style.display = v === 'resumo' ? 'block' : 'none';
+  document.getElementById('btn-marcar').className = 'view-btn ' + (v === 'marcar' ? 'active' : 'inactive');
+  document.getElementById('btn-resumo').className = 'view-btn ' + (v === 'resumo' ? 'active' : 'inactive');
+  if (v === 'resumo') renderResumo();
+}
+
+function toggleAddForm() {
+  var f = document.getElementById('add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addPerson() {
+  var name = document.getElementById('new-name').value.trim();
+  var role = document.getElementById('new-role').value;
+  if (!name) { alert('Digite o nome.'); return; }
+  people.push({ id: nextId++, role: role, name: name, isLeader: false });
+  document.getElementById('new-name').value = '';
+  document.getElementById('add-form').style.display = 'none';
+  savePeople();
+  render();
+}
+
+function buildMonthBtns() {
+  var html = '';
+  for (var i = 0; i < MONTHS.length; i++) {
+    html += '<button class="month-btn ' + (i === selectedMonth ? 'active' : 'inactive') + '" onclick="selectMonth(' + i + ')">' + MONTHS[i].name + '</button>';
+  }
+  document.getElementById('month-btns').innerHTML = html;
+}
+
+function selectMonth(i) {
+  selectedMonth = i; selectedDays = [];
+  buildMonthBtns(); buildDaysGrid(); render();
+}
+
+function selectAllDays() {
+  selectedDays = [];
+  for (var d = 1; d <= MONTHS[selectedMonth].days; d++) selectedDays.push(d);
+  buildDaysGrid(); render();
+}
+
+function buildDaysGrid() {
+  var total = MONTHS[selectedMonth].days;
+  var el = document.getElementById('days-grid');
+  var sorted = selectedDays.slice().sort(function(a,b){return a-b;});
+  document.getElementById('day-label').textContent = selectedDays.length === 0
+    ? 'Dias selecionados: nenhum'
+    : 'Dias selecionados: ' + sorted.join(', ');
+  el.innerHTML = '';
+  for (var d = 1; d <= total; d++) {
+    var sel = selectedDays.indexOf(d) >= 0;
+    var cnt = 0;
+    for (var pi = 0; pi < people.length; pi++) { if (marks[markKey(selectedMonth, d, people[pi].id)]) cnt++; }
+    var pct = people.length ? cnt / people.length : 0;
+    var btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.textContent = d;
+    btn.style.background = sel ? '#f59e0b' : 'rgba(16,185,129,' + (pct * 0.5) + ')';
+    btn.style.border = sel ? '2px solid #f59e0b' : '1px solid rgba(255,255,255,0.15)';
+    btn.style.color = sel ? '#000' : '#f0f0f0';
+    btn.style.fontWeight = sel ? '700' : '400';
+    (function(day) { btn.onclick = function() { toggleDay(day); }; })(d);
+    el.appendChild(btn);
+  }
+}
+
+function toggleDay(d) {
+  var idx = selectedDays.indexOf(d);
+  if (idx >= 0) selectedDays.splice(idx, 1); else selectedDays.push(d);
+  buildDaysGrid(); render();
+}
+
+function getFiltered() {
+  var search = document.getElementById('search') ? document.getElementById('search').value.toLowerCase() : '';
+  var role = document.getElementById('role-filter') ? document.getElementById('role-filter').value : 'Todos';
+  return people.filter(function(p) {
+    return p.name.toLowerCase().indexOf(search) >= 0 && (role === 'Todos' || p.role === role);
+  });
+}
+
+function isMarked(pid) {
+  if (!selectedDays.length) return false;
+  for (var i = 0; i < selectedDays.length; i++) { if (!marks[markKey(selectedMonth, selectedDays[i], pid)]) return false; }
+  return true;
+}
+
+function isPartial(pid) {
+  if (selectedDays.length <= 1) return false;
+  var c = 0;
+  for (var i = 0; i < selectedDays.length; i++) { if (marks[markKey(selectedMonth, selectedDays[i], pid)]) c++; }
+  return c > 0 && c < selectedDays.length;
+}
+
+function getMonthCount(pid) {
+  var total = MONTHS[selectedMonth].days, c = 0;
+  for (var d = 1; d <= total; d++) { if (marks[markKey(selectedMonth, d, pid)]) c++; }
+  return c;
+}
+
+function toggleMark(pid) {
+  var allMarked = isMarked(pid);
+  for (var i = 0; i < selectedDays.length; i++) {
+    var k = markKey(selectedMonth, selectedDays[i], pid);
+    if (allMarked) delete marks[k]; else marks[k] = true;
+  }
+  render(); scheduleMarks();
+}
+
+function markAll() {
+  if (!selectedDays.length) { alert('Selecione ao menos um dia.'); return; }
+  var fp = getFiltered();
+  for (var i = 0; i < fp.length; i++)
+    for (var j = 0; j < selectedDays.length; j++)
+      marks[markKey(selectedMonth, selectedDays[j], fp[i].id)] = true;
+  render(); scheduleMarks();
+}
+
+function clearAll() {
+  if (!selectedDays.length) { alert('Selecione ao menos um dia.'); return; }
+  var fp = getFiltered();
+  for (var i = 0; i < fp.length; i++)
+    for (var j = 0; j < selectedDays.length; j++)
+      delete marks[markKey(selectedMonth, selectedDays[j], fp[i].id)];
+  render(); scheduleMarks();
+}
+
+function render() {
+  buildDaysGrid();
+  var fp = getFiltered();
+  var mdays = MONTHS[selectedMonth].days;
+  var sb = document.getElementById('stats-bar');
+
+  if (selectedDays.length === 1) {
+    var d = selectedDays[0], total = people.length, marked = 0;
+    for (var i = 0; i < people.length; i++) { if (marks[markKey(selectedMonth, d, people[i].id)]) marked++; }
+    var pct = Math.round((marked / total) * 100);
+    sb.innerHTML =
+      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">✅ <strong>' + marked + '</strong> marcados</div>' +
+      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">❌ <strong>' + (total - marked) + '</strong> não marcados</div>' +
+      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">📊 <strong>' + pct + '%</strong> do grupo</div>';
+  } else sb.innerHTML = '';
+
+  var list = document.getElementById('people-list');
+  if (!selectedDays.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">👆 Selecione um ou mais dias para fazer marcações</div>';
+    return;
+  }
+  if (!fp.length) { list.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">Nenhuma pessoa encontrada</div>'; return; }
+
+  var html = '';
+  for (var i = 0; i < fp.length; i++) {
+    var p = fp[i];
+    var marked2 = isMarked(p.id), partial = isPartial(p.id);
+    var cnt = getMonthCount(p.id), pct2 = Math.round((cnt / mdays) * 100);
+    var c = ROLE_COLORS[p.role] || ROLE_COLORS['Acompanhador'];
+    var pc = pct2 >= 70 ? '#10b981' : pct2 >= 40 ? '#f59e0b' : '#ef4444';
+    var rowBg = marked2 ? 'rgba(16,185,129,0.18)' : partial ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)';
+    var rowBd = marked2 ? '1px solid rgba(16,185,129,0.5)' : partial ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.08)';
+    var cirBg = marked2 ? '#10b981' : partial ? '#f59e0b' : 'rgba(255,255,255,0.1)';
+    var chk = marked2 ? '✓' : partial ? '~' : '';
+    html += '<div class="person-row" style="background:' + rowBg + ';border:' + rowBd + '" onclick="toggleMark(' + p.id + ')">' +
+      '<div class="check-circle" style="background:' + cirBg + '">' + chk + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<span style="font-size:14px;color:' + (marked2 ? '#6ee7b7' : '#f0f0f0') + ';font-weight:' + (p.isLeader ? 700 : 400) + '">' + (p.isLeader ? '👑 ' : '') + p.name + '</span>' +
+        '<span style="font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;background:' + c.badge + '22;color:' + c.badge + ';border:1px solid ' + c.badge + '44">' + p.role + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#64748b;text-align:right;flex-shrink:0">' +
+        '<div>' + cnt + '/' + mdays + '</div>' +
+        '<div style="font-weight:700;color:' + pc + '">' + pct2 + '%</div>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function renderResumo() {
+  var mdays = MONTHS[selectedMonth].days;
+  document.getElementById('resumo-title').textContent = '📊 Resumo — ' + MONTHS[selectedMonth].name + ' 2026';
+  var roles = ['Anjo', 'Coordenadora', 'Coordenador', 'Acompanhador'];
+  var cardsHtml = '';
+  for (var r = 0; r < roles.length; r++) {
+    var role = roles[r];
+    var group = people.filter(function(p) { return p.role === role; });
+    var tp = group.length * mdays, tm = 0;
+    for (var i = 0; i < group.length; i++) tm += getMonthCount(group[i].id);
+    var pct = tp ? Math.round((tm / tp) * 100) : 0;
+    var c = ROLE_COLORS[role];
+    cardsHtml += '<div class="role-card" style="border:1px solid ' + c.badge + '44">' +
+      '<div style="font-size:12px;font-weight:700;color:' + c.badge + ';margin-bottom:6px">' + role + '</div>' +
+      '<div style="font-size:22px;font-weight:800">' + group.length + '</div>' +
+      '<div style="font-size:11px;color:#64748b">pessoas</div>' +
+      '<div style="margin-top:8px;height:4px;border-radius:2px;background:rgba(255,255,255,0.1)">' +
+        '<div style="height:100%;border-radius:2px;width:' + pct + '%;background:' + c.badge + '"></div></div>' +
+      '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + pct + '% do mês</div></div>';
+  }
+  document.getElementById('role-cards').innerHTML = cardsHtml;
+
+  var sorted = people.map(function(p) { return { id:p.id, name:p.name, role:p.role, isLeader:p.isLeader, cnt:getMonthCount(p.id) }; });
+  sorted.sort(function(a, b) { return b.cnt - a.cnt; });
+  var tableHtml = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var p = sorted[i];
+    var pct2 = Math.round((p.cnt / mdays) * 100);
+    var pc = pct2 >= 70 ? '#10b981' : pct2 >= 40 ? '#f59e0b' : '#ef4444';
+    var c2 = ROLE_COLORS[p.role] || ROLE_COLORS['Acompanhador'];
+    tableHtml += '<div class="table-row">' +
+      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.isLeader ? '👑 ' : '') + p.name + '</span>' +
+      '<span style="color:#94a3b8">' + p.cnt + '/' + mdays + '</span>' +
+      '<span style="font-weight:700;color:' + pc + '">' + pct2 + '%</span>' +
+      '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:' + c2.badge + '22;color:' + c2.badge + '">' + p.role + '</span>' +
+    '</div>';
+  }
+  document.getElementById('resumo-table').innerHTML = tableHtml;
+}
+
+// Botão conectar
+document.getElementById('btn-connect').onclick = connectFirebase;
+
+// Auto-conectar se já tiver config salva
+(function() {
+  var saved = localStorage.getItem('fb_config');
+  if (saved) {
+    try {
+      var cfg = JSON.parse(saved);
+      document.getElementById('cfg-apiKey').value = cfg.apiKey;
+      document.getElementById('cfg-authDomain').value = cfg.authDomain;
+      document.getElementById('cfg-projectId').value = cfg.projectId;
+      doConnect(cfg);
+    } catch(e) { localStorage.removeItem('fb_config'); }
+  }
+})();
+</script>
+</body>
+</html>
