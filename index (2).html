@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário Espiritual 2026</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Georgia,serif; min-height:100vh; background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); color:#f0f0f0; }
+
+/* SETUP */
+#setup-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.setup-box { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:20px; padding:36px; max-width:500px; width:100%; }
+.setup-box h2 { font-size:22px; margin-bottom:8px; color:#f59e0b; }
+.setup-step { margin-bottom:14px; }
+.setup-step label { display:block; font-size:11px; color:#94a3b8; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px; }
+.setup-input { width:100%; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:#fff; font-size:14px; outline:none; }
+.setup-input::placeholder { color:#4a5568; }
+.btn-connect { width:100%; padding:13px; border-radius:12px; border:none; background:#f59e0b; color:#000; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; }
+.setup-error { color:#ef4444; font-size:13px; margin-top:10px; display:none; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px; }
+.setup-loading { color:#94a3b8; font-size:13px; margin-top:10px; display:none; }
+.sn { display:inline-block; background:#f59e0b; color:#000; border-radius:50%; width:20px; height:20px; text-align:center; line-height:20px; font-size:11px; font-weight:700; margin-right:5px; }
+code { background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:4px; font-size:12px; color:#fbbf24; }
+a.hl { color:#60a5fa; }
+
+/* APP */
+#app { display:none; }
+.header { background:rgba(255,255,255,0.05); border-bottom:1px solid rgba(255,255,255,0.1); padding:14px 20px; position:sticky; top:0; z-index:100; }
+.header-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.nav-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.nav-tab { padding:7px 16px; border-radius:20px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
+.nav-tab.active { background:#f59e0b; color:#000; }
+.nav-tab.inactive { background:rgba(255,255,255,0.1); color:#fff; }
+.nav-tab.admin-tab { background:rgba(139,92,246,0.2); color:#c4b5fd; border:1px solid rgba(139,92,246,0.3); }
+.nav-tab.admin-tab.active { background:#8b5cf6; color:#fff; }
+
+.sync-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:4px; }
+.sync-ok { background:#10b981; }
+.sync-saving { background:#f59e0b; animation:pulse 1s infinite; }
+.sync-err { background:#ef4444; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+.container { max-width:1100px; margin:0 auto; padding:18px 16px; }
+.card { background:rgba(255,255,255,0.05); border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.1); }
+.card-title { font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+
+/* Month selector */
+.month-btn { padding:5px 12px; border-radius:18px; border:none; cursor:pointer; font-size:12px; transition:all 0.2s; margin:2px; }
+.month-btn.active { background:#f59e0b; color:#000; font-weight:700; }
+.month-btn.inactive { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+/* Week tabs */
+.week-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.week-tab { padding:7px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); cursor:pointer; font-size:13px; transition:all 0.2s; background:rgba(255,255,255,0.05); color:#e2e8f0; }
+.week-tab.active { background:#f59e0b; color:#000; font-weight:700; border-color:#f59e0b; }
+
+/* Day pills */
+.day-pill { width:36px; height:36px; border-radius:8px; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; justify-content:center; margin:2px; transition:all 0.15s; border:1px solid rgba(255,255,255,0.12); }
+
+/* Legenda */
+.legenda { display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.07); margin-bottom:14px; }
+.leg-item { display:flex; align-items:center; gap:5px; font-size:12px; }
+.leg-dot { width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; }
+
+/* Person rows */
+.person-row { display:grid; grid-template-columns:1fr 86px 86px 60px; align-items:center; gap:8px; padding:9px 12px; border-radius:10px; margin-bottom:5px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); transition:all 0.15s; }
+.af-col { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.af-lbl { font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
+.status-btn { width:34px; height:34px; border-radius:7px; border:none; cursor:pointer; font-weight:700; font-size:13px; transition:all 0.15s; }
+.st-none { background:rgba(255,255,255,0.08); color:#64748b; }
+.st-B { background:#10b981; color:#fff; }
+.st-S { background:#f59e0b; color:#000; }
+.st-N { background:#ef4444; color:#fff; }
+.person-stat { font-size:11px; text-align:right; line-height:1.6; }
+
+/* Group header */
+.group-header { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; margin-bottom:4px; margin-top:12px; }
+.group-badge { font-size:11px; padding:2px 10px; border-radius:10px; font-weight:700; }
+
+/* Monthly preview grid */
+.preview-grid { overflow-x:auto; }
+.preview-table { border-collapse:collapse; min-width:100%; font-size:11px; }
+.preview-table th { padding:5px 4px; text-align:center; color:#64748b; font-weight:600; position:sticky; top:0; background:#16213e; border-bottom:1px solid rgba(255,255,255,0.1); }
+.preview-table td { padding:3px 2px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.04); }
+.preview-table td:first-child { text-align:left; padding-left:8px; white-space:nowrap; color:#e2e8f0; font-size:12px; position:sticky; left:0; background:#16213e; min-width:140px; }
+.prev-cell { width:22px; height:22px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; margin:1px auto; }
+.prev-B { background:#10b981; color:#fff; }
+.prev-S { background:#f59e0b; color:#000; }
+.prev-N { background:#ef4444; color:#fff; }
+.prev-empty { background:rgba(255,255,255,0.06); color:#374151; }
+.week-sep { border-left:2px solid rgba(255,255,255,0.15) !important; }
+
+/* Stats chips */
+.stat-chip { border-radius:9px; padding:7px 13px; font-size:12px; }
+
+/* ADMIN */
+.admin-section { margin-bottom:24px; }
+.admin-title { font-size:16px; font-weight:700; color:#c4b5fd; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.group-card { background:rgba(139,92,246,0.07); border:1px solid rgba(139,92,246,0.2); border-radius:14px; padding:16px; margin-bottom:12px; }
+.group-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+.group-name-display { font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.person-admin-row { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,0.04); margin-bottom:4px; border:1px solid rgba(255,255,255,0.06); }
+.person-admin-name { flex:1; font-size:13px; }
+.leader-toggle { padding:3px 8px; border-radius:6px; border:none; cursor:pointer; font-size:11px; font-weight:700; transition:all 0.2s; }
+.btn-icon { width:28px; height:28px; border-radius:7px; border:none; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.btn-danger { background:rgba(239,68,68,0.15); color:#ef4444; }
+.btn-danger:hover { background:rgba(239,68,68,0.3); }
+.btn-move { background:rgba(255,255,255,0.08); color:#94a3b8; }
+.btn-move:hover { background:rgba(255,255,255,0.15); }
+.btn-primary { padding:8px 16px; border-radius:9px; border:none; cursor:pointer; font-size:13px; font-weight:600; background:#8b5cf6; color:#fff; }
+.btn-secondary { padding:8px 16px; border-radius:9px; border:none; cursor:pointer; font-size:13px; background:rgba(255,255,255,0.1); color:#fff; }
+.btn-success { padding:8px 16px; border-radius:9px; border:none; cursor:pointer; font-size:13px; font-weight:600; background:#10b981; color:#fff; }
+.btn-gold { padding:8px 16px; border-radius:9px; border:none; cursor:pointer; font-size:13px; font-weight:700; background:#f59e0b; color:#000; }
+.input-field { padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:#fff; font-size:13px; outline:none; }
+.input-field::placeholder { color:#4a5568; }
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; padding:20px; }
+.modal-bg.open { display:flex; }
+.modal { background:#1e2a4a; border:1px solid rgba(255,255,255,0.15); border-radius:16px; padding:24px; max-width:420px; width:100%; }
+.modal h3 { font-size:17px; font-weight:700; margin-bottom:16px; color:#f59e0b; }
+select.input-field { background:rgba(20,20,50,0.95); cursor:pointer; }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h2>⚙️ Configurar Firebase</h2>
+    <p style="font-size:13px;color:#94a3b8;margin-bottom:18px;line-height:1.7">Cole os dados do seu projeto Firebase para ativar o banco de dados compartilhado em tempo real.</p>
+    <p style="font-size:12px;color:#e2e8f0;line-height:2;margin-bottom:16px">
+      <span class="sn">1</span> <a href="https://console.firebase.google.com" target="_blank" class="hl">console.firebase.google.com</a> → crie um projeto<br>
+      <span class="sn">2</span> <strong>Firestore Database → Criar banco → Modo de teste</strong><br>
+      <span class="sn">3</span> <strong>⚙️ Configurações → Seus apps → Adicionar app Web</strong><br>
+      <span class="sn">4</span> Copie <code>apiKey</code>, <code>authDomain</code> e <code>projectId</code>
+    </p>
+    <div class="setup-step"><label>API Key</label><input class="setup-input" id="cfg-apiKey" placeholder="AIzaSy..."></div>
+    <div class="setup-step"><label>Auth Domain</label><input class="setup-input" id="cfg-authDomain" placeholder="projeto.firebaseapp.com"></div>
+    <div class="setup-step"><label>Project ID</label><input class="setup-input" id="cfg-projectId" placeholder="meu-projeto"></div>
+    <button class="btn-connect" id="btn-connect">🔗 Conectar e abrir sistema</button>
+    <div class="setup-error" id="setup-error"></div>
+    <div class="setup-loading" id="setup-loading">⏳ Conectando ao Firebase...</div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:18px 0">
+    <p style="font-size:11px;color:#64748b">💡 Configuração salva automaticamente. Na próxima vez abre direto.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-inner">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">✨</span>
+        <div>
+          <div style="font-size:17px;font-weight:bold;letter-spacing:1px">Diário Espiritual 2026</div>
+          <div style="font-size:11px;color:#94a3b8;display:flex;align-items:center">
+            <span class="sync-dot sync-ok" id="sync-dot"></span><span id="sync-text">Conectado</span>
+          </div>
+        </div>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-marcação" onclick="setTab('marcação')">✏️ marcação</button>
+        <button class="nav-tab inactive" id="tab-preview" onclick="setTab('preview')">📅 Prévia do Mês</button>
+        <button class="nav-tab inactive admin-tab" id="tab-admin" onclick="setTab('admin')">⚙️ Administrar</button>
+        <button onclick="resetConfig()" style="font-size:11px;background:rgba(255,255,255,0.06);border:none;color:#64748b;border-radius:8px;padding:4px 9px;cursor:pointer">🔌 Config</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ===== marcação ===== -->
+    <div id="view-marcação">
+      <!-- Mês -->
+      <div class="card">
+        <div class="card-title">Mês</div>
+        <div id="month-btns-marcação"></div>
+      </div>
+
+      <!-- Semanas -->
+      <div class="week-tabs" id="week-tabs"></div>
+
+      <!-- Dias da semana -->
+      <div class="card" style="padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:12px;color:#94a3b8" id="day-label-marcação">Selecione um dia</div>
+        </div>
+        <div id="days-grid-marcação"></div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="legenda">
+        <span style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px">Legenda:</span>
+        <div class="leg-item"><div class="leg-dot st-B">B</div><span style="color:#10b981">Bom</span></div>
+        <div class="leg-item"><div class="leg-dot st-S">S</div><span style="color:#f59e0b">Superficial</span></div>
+        <div class="leg-item"><div class="leg-dot st-N">N</div><span style="color:#ef4444">Não fez</span></div>
+        <div style="border-left:1px solid rgba(255,255,255,0.1);padding-left:10px;margin-left:4px;font-size:12px;color:#94a3b8">
+          <strong style="color:#e2e8f0">A</strong> = Abertura &nbsp;|&nbsp; <strong style="color:#e2e8f0">F</strong> = Fechamento
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+        <input class="input-field" id="search-marcação" style="flex:1;min-width:160px" placeholder="🔍 Buscar pessoa..." oninput="rendermarcação()">
+        <select class="input-field" id="group-filter" onchange="rendermarcação()" style="background:rgba(20,20,50,0.95);cursor:pointer">
+          <option value="Todos">Todos os grupos</option>
+        </select>
+      </div>
+
+      <!-- Stats -->
+      <div id="stats-bar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+      <!-- Cabeçalho -->
+      <div style="display:grid;grid-template-columns:1fr 86px 86px 60px;gap:8px;padding:4px 12px;margin-bottom:2px">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Pessoa / Grupo</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:center">Abertura (A)</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:center">Fechamento (F)</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:right">Mês</div>
+      </div>
+      <div id="people-list-marcação"></div>
+    </div>
+
+    <!-- ===== PREVIEW ===== -->
+    <div id="view-preview" style="display:none">
+      <div class="card">
+        <div class="card-title">Mês — Prévia Completa</div>
+        <div id="month-btns-preview"></div>
+      </div>
+
+      <!-- Filtro grupo preview -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+        <select class="input-field" id="group-filter-preview" onchange="renderPreview()" style="background:rgba(20,20,50,0.95);cursor:pointer">
+          <option value="Todos">Todos os grupos</option>
+        </select>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="preview-legend">
+          <div class="leg-item"><div class="leg-dot prev-B" style="width:18px;height:18px;border-radius:3px">B</div><span style="font-size:11px;color:#10b981">Bom</span></div>
+          <div class="leg-item"><div class="leg-dot prev-S" style="width:18px;height:18px;border-radius:3px">S</div><span style="font-size:11px;color:#f59e0b">Superficial</span></div>
+          <div class="leg-item"><div class="leg-dot prev-N" style="width:18px;height:18px;border-radius:3px">N</div><span style="font-size:11px;color:#ef4444">Não fez</span></div>
+        </div>
+      </div>
+
+      <!-- Semanas tabs preview -->
+      <div class="week-tabs" id="week-tabs-preview" style="margin-bottom:14px"></div>
+
+      <div class="card" style="padding:10px">
+        <div class="preview-grid">
+          <table class="preview-table" id="preview-table"></table>
+        </div>
+      </div>
+
+      <!-- Resumo por grupo -->
+      <div id="preview-group-stats"></div>
+    </div>
+
+    <!-- ===== ADMIN ===== -->
+    <div id="view-admin" style="display:none">
+      <div class="admin-section">
+        <div class="admin-title">⚙️ Administração de Grupos e Pessoas</div>
+
+        <!-- Criar novo grupo -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">Criar novo grupo</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input class="input-field" id="new-group-name" placeholder="Nome do grupo..." style="flex:1;min-width:160px">
+            <input class="input-field" id="new-group-color" type="color" value="#f59e0b" style="width:44px;height:38px;padding:2px;cursor:pointer;border-radius:8px">
+            <button class="btn-success" onclick="createGroup()">➕ Criar grupo</button>
+          </div>
+        </div>
+
+        <!-- Lista de grupos -->
+        <div id="admin-groups-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /app -->
+
+<!-- MODAL: Adicionar/Editar pessoa -->
+<div class="modal-bg" id="modal-person">
+  <div class="modal">
+    <h3 id="modal-title">Adicionar Pessoa</h3>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">NOME</label>
+      <input class="input-field" id="modal-name" placeholder="Nome completo" style="width:100%">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">GRUPO</label>
+      <select class="input-field" id="modal-group" style="width:100%"></select>
+    </div>
+    <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="modal-leader" style="width:16px;height:16px;cursor:pointer">
+      <label for="modal-leader" style="font-size:13px;cursor:pointer">👑 É líder do grupo</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-gold" onclick="savePerson()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Mover pessoa -->
+<div class="modal-bg" id="modal-move">
+  <div class="modal">
+    <h3>Mover Pessoa</h3>
+    <p style="font-size:13px;color:#94a3b8;margin-bottom:14px" id="modal-move-name"></p>
+    <div style="margin-bottom:20px">
+      <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">MOVER PARA O GRUPO</label>
+      <select class="input-field" id="modal-move-group" style="width:100%"></select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-secondary" onclick="closeMoveModal()">Cancelar</button>
+      <button class="btn-primary" onclick="confirmMove()">Mover</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ===================== DATA =====================
+var DEFAULT_GROUPS = [
+  {id:'anjo',name:'Anjo',color:'#f59e0b'},
+  {id:'coordenador',name:'Coordenador',color:'#ec4899'},
+  {id:'vice',name:'Vice-coordenador',color:'#8b5cf6'},
+  {id:'cirineu',name:'Cirineu',color:'#06b6d4'},
+  {id:'acompanhador',name:'Acompanhador',color:'#0ea5e9'},
+  {id:'equipe-mae',name:'Equipe Mãe',color:'#10b981'},
+  {id:'embriao',name:'Embrião',color:'#f97316'}
+];
+var DEFAULT_PEOPLE = [
+  {id:1,groupId:'anjo',name:'Daniela Felix',isLeader:true},
+  {id:2,groupId:'anjo',name:'Poliana Clarissa',isLeader:false},
+  {id:3,groupId:'anjo',name:'Robson Gonzaga',isLeader:true},
+  {id:4,groupId:'anjo',name:'Cleberson Rodrigues',isLeader:false},
+  {id:5,groupId:'coordenador',name:'Poliana Clarissa',isLeader:true},
+  {id:6,groupId:'coordenador',name:'Angélica',isLeader:false},
+  {id:7,groupId:'coordenador',name:'Taty do Sirlandio',isLeader:false},
+  {id:8,groupId:'coordenador',name:'Tatiane do Gustavo',isLeader:false},
+  {id:9,groupId:'vice',name:'Cleberson',isLeader:true},
+  {id:10,groupId:'vice',name:'Lucas da Angélica',isLeader:false},
+  {id:11,groupId:'vice',name:'Sirlandio',isLeader:false},
+  {id:12,groupId:'vice',name:'Gustavo',isLeader:false},
+  {id:13,groupId:'acompanhador',name:'Angélica',isLeader:true},
+  {id:14,groupId:'acompanhador',name:'Maria',isLeader:false},
+  {id:15,groupId:'acompanhador',name:'Aline',isLeader:false},
+  {id:16,groupId:'acompanhador',name:'Elaine',isLeader:false},
+  {id:17,groupId:'acompanhador',name:'Tatiana do Vitor',isLeader:false},
+  {id:18,groupId:'acompanhador',name:'Lucas da Angélica',isLeader:true},
+  {id:19,groupId:'acompanhador',name:'Ricardo',isLeader:false},
+  {id:20,groupId:'acompanhador',name:'Luccas (Aline)',isLeader:false},
+  {id:21,groupId:'acompanhador',name:'Jailton',isLeader:false},
+  {id:22,groupId:'acompanhador',name:'Vitor',isLeader:false},
+  {id:23,groupId:'acompanhador',name:'Taty do Sirlandio',isLeader:true},
+  {id:24,groupId:'acompanhador',name:'Célia',isLeader:false},
+  {id:25,groupId:'acompanhador',name:'Michelly',isLeader:false},
+  {id:26,groupId:'acompanhador',name:'Regina',isLeader:false},
+  {id:27,groupId:'acompanhador',name:'Paula',isLeader:false},
+  {id:28,groupId:'acompanhador',name:'Sirlândio',isLeader:true},
+  {id:29,groupId:'acompanhador',name:'Henrique',isLeader:false},
+  {id:30,groupId:'acompanhador',name:'Anderson da Michelly',isLeader:false},
+  {id:31,groupId:'acompanhador',name:'Cleverson',isLeader:false},
+  {id:32,groupId:'acompanhador',name:'Irineu',isLeader:false},
+  {id:33,groupId:'acompanhador',name:'Paula',isLeader:true},
+  {id:34,groupId:'acompanhador',name:'Tina',isLeader:false},
+  {id:35,groupId:'acompanhador',name:'Samantha',isLeader:false},
+  {id:36,groupId:'acompanhador',name:'Adriana do Adelson',isLeader:false},
+  {id:37,groupId:'acompanhador',name:'Irineu Dos Reis',isLeader:true},
+  {id:38,groupId:'acompanhador',name:'José',isLeader:false},
+  {id:39,groupId:'acompanhador',name:'Sandro',isLeader:false},
+  {id:40,groupId:'acompanhador',name:'Adelson',isLeader:false},
+  {id:41,groupId:'acompanhador',name:'Célia',isLeader:true},
+  {id:42,groupId:'acompanhador',name:'Adriana do Cristiano',isLeader:false},
+  {id:43,groupId:'acompanhador',name:'Vanessa',isLeader:false},
+  {id:44,groupId:'acompanhador',name:'Débora',isLeader:false},
+  {id:45,groupId:'acompanhador',name:'Henrique',isLeader:true},
+  {id:46,groupId:'acompanhador',name:'Cristiano',isLeader:false},
+  {id:47,groupId:'acompanhador',name:'Eleanderson',isLeader:false},
+  {id:48,groupId:'acompanhador',name:'Bruno',isLeader:false},
+  {id:49,groupId:'acompanhador',name:'Maria',isLeader:true},
+  {id:50,groupId:'acompanhador',name:'Priscila',isLeader:false},
+  {id:51,groupId:'acompanhador',name:'Ana Paula Pó',isLeader:false},
+  {id:52,groupId:'acompanhador',name:'Jaciene',isLeader:false},
+  {id:53,groupId:'acompanhador',name:'Thalita',isLeader:false},
+  {id:54,groupId:'acompanhador',name:'Ricardo',isLeader:true},
+  {id:55,groupId:'acompanhador',name:'Celso',isLeader:false},
+  {id:56,groupId:'acompanhador',name:'Carlos Pó',isLeader:false},
+  {id:57,groupId:'acompanhador',name:'Jocival',isLeader:false},
+  {id:58,groupId:'acompanhador',name:'Rodrigo',isLeader:false},
+  {id:59,groupId:'acompanhador',name:'Tati do Gustavo',isLeader:true},
+  {id:60,groupId:'acompanhador',name:'Karina',isLeader:false},
+  {id:61,groupId:'acompanhador',name:'Liliane',isLeader:false},
+  {id:62,groupId:'acompanhador',name:'Andrea do Ailton',isLeader:false},
+  {id:63,groupId:'acompanhador',name:'Gustavo',isLeader:true},
+  {id:64,groupId:'acompanhador',name:'Robson',isLeader:false},
+  {id:65,groupId:'acompanhador',name:'Helio',isLeader:false},
+  {id:66,groupId:'acompanhador',name:'Ailton',isLeader:false},
+  {id:67,groupId:'acompanhador',name:'Aline do Luccas',isLeader:true},
+  {id:68,groupId:'acompanhador',name:'Tamires',isLeader:false},
+  {id:69,groupId:'acompanhador',name:'Luccas da Aline',isLeader:true},
+  {id:70,groupId:'acompanhador',name:'Wellington',isLeader:false},
+  {id:71,groupId:'acompanhador',name:'Samantha',isLeader:true},
+  {id:72,groupId:'acompanhador',name:'Rosana',isLeader:false},
+  {id:73,groupId:'acompanhador',name:'Sandro',isLeader:true},
+  {id:74,groupId:'acompanhador',name:'Romario',isLeader:false}
+];
+var MONTHS = [
+  {name:'Janeiro',days:31},{name:'Fevereiro',days:28},{name:'Março',days:31},
+  {name:'Abril',days:30},{name:'Maio',days:31},{name:'Junho',days:30},
+  {name:'Julho',days:31},{name:'Agosto',days:31},{name:'Setembro',days:30},
+  {name:'Outubro',days:31},{name:'Novembro',days:30},{name:'Dezembro',days:31}
+];
+
+// ===================== STATE =====================
+var db=null, groups=[], people=[], marks={};
+var selMonth=new Date().getMonth(), selDay=new Date().getDate(), selWeek=0;
+var previewMonth=new Date().getMonth(), previewWeek=0;
+var currentTab='marcação', nextId=75, saveTimeout=null;
+var editingPersonId=null, movingPersonId=null;
+
+// ===================== FIREBASE =====================
+function setSyncStatus(s,t){document.getElementById('sync-dot').className='sync-dot sync-'+s;document.getElementById('sync-text').textContent=t;}
+function showErr(m){var e=document.getElementById('setup-error');e.textContent=m;e.style.display='block';document.getElementById('setup-loading').style.display='none';}
+function doConnect(cfg){
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
+    db=firebase.firestore();
+    db.collection('system').doc('ping').set({ok:true})
+      .then(function(){localStorage.setItem('fb_config',JSON.stringify(cfg));initApp();})
+      .catch(function(e){showErr('Erro: '+e.message);});
+  }catch(e){showErr('Erro: '+e.message);}
+}
+function connectFirebase(){
+  var ak=document.getElementById('cfg-apiKey').value.trim();
+  var ad=document.getElementById('cfg-authDomain').value.trim();
+  var pid=document.getElementById('cfg-projectId').value.trim();
+  if(!ak||!ad||!pid){showErr('Preencha todos os campos.');return;}
+  document.getElementById('setup-loading').style.display='block';
+  document.getElementById('setup-error').style.display='none';
+  doConnect({apiKey:ak,authDomain:ad,projectId:pid});
+}
+function resetConfig(){if(confirm('Reconfigurar?')){localStorage.removeItem('fb_config');location.reload();}}
+
+function initApp(){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  setSyncStatus('saving','Carregando...');
+
+  // Load groups
+  db.collection('config').doc('groups').get().then(function(snap){
+    groups=snap.exists?snap.data().list:DEFAULT_GROUPS.slice();
+    if(!snap.exists)db.collection('config').doc('groups').set({list:groups});
+
+    // Load people
+    db.collection('config').doc('people').get().then(function(snap2){
+      people=snap2.exists?snap2.data().list:DEFAULT_PEOPLE.slice();
+      if(!snap2.exists)db.collection('config').doc('people').set({list:people});
+      nextId=Math.max.apply(null,people.map(function(p){return p.id;}))+1;
+
+      populateGroupFilters();
+
+      // Live marks
+      db.collection('marks').doc('data').onSnapshot(function(snap3){
+        marks=snap3.exists?(snap3.data().marks||{}):{};
+        setSyncStatus('ok','Sincronizado');
+        rendermarcação();renderPreview();renderAdmin();
+        buildDaysGridmarcação();buildWeekTabsPreview();
+      },function(){setSyncStatus('err','Erro de conexão');});
+
+      buildMonthBtns();buildWeekTabs();buildDaysGridmarcação();
+      rendermarcação();renderPreview();renderAdmin();
+    });
+  });
+}
+
+function saveMarks(){
+  if(!db)return;setSyncStatus('saving','Salvando...');
+  db.collection('marks').doc('data').set({marks:marks})
+    .then(function(){setSyncStatus('ok','Sincronizado');})
+    .catch(function(){setSyncStatus('err','Erro ao salvar');});
+}
+function scheduleMarks(){clearTimeout(saveTimeout);saveTimeout=setTimeout(saveMarks,600);}
+function savePeopleDB(){if(db)db.collection('config').doc('people').set({list:people});}
+function saveGroupsDB(){if(db)db.collection('config').doc('groups').set({list:groups});}
+
+// ===================== HELPERS =====================
+function mk(m,d,pid,af){return m+'-'+d+'-'+pid+'-'+af;}
+function getGroup(gid){return groups.find(function(g){return g.id===gid;})||{name:gid,color:'#64748b'};}
+function getWeeks(month){
+  var days=MONTHS[month].days, weeks=[], w=[];
+  for(var d=1;d<=days;d++){
+    w.push(d);
+    if(w.length===7||d===days){weeks.push(w.slice());w=[];}
+  }
+  return weeks;
+}
+function nextStatus(s){var c=[null,'B','S','N'];var i=c.indexOf(s);return c[(i+1)%c.length];}
+function getMonthStats(pid,month){
+  var total=MONTHS[month].days,ab=0,as=0,an=0,fb=0,fs=0,fn=0;
+  for(var d=1;d<=total;d++){
+    var va=marks[mk(month,d,pid,'A')],vf=marks[mk(month,d,pid,'F')];
+    if(va==='B')ab++;else if(va==='S')as++;else if(va==='N')an++;
+    if(vf==='B')fb++;else if(vf==='S')fs++;else if(vf==='N')fn++;
+  }
+  return{ab:ab,as:as,an:an,fb:fb,fs:fs,fn:fn};
+}
+
+// ===================== NAV =====================
+function setTab(t){
+  currentTab=t;
+  ['marcação','preview','admin'].forEach(function(v){
+    document.getElementById('view-'+v).style.display=v===t?'block':'none';
+    var btn=document.getElementById('tab-'+v);
+    if(btn){btn.className='nav-tab '+(v===t?'active':'inactive')+(v==='admin'?' admin-tab':'');}
+  });
+  if(t==='preview')renderPreview();
+  if(t==='admin')renderAdmin();
+}
+
+// ===================== MONTH / WEEK / DAY =====================
+function buildMonthBtns(){
+  var h='';
+  MONTHS.forEach(function(m,i){h+='<button class="month-btn '+(i===selMonth?'active':'inactive')+'" onclick="selectMonthmarcação('+i+')">'+m.name+'</button>';});
+  document.getElementById('month-btns-marcação').innerHTML=h;
+  var h2='';
+  MONTHS.forEach(function(m,i){h2+='<button class="month-btn '+(i===previewMonth?'active':'inactive')+'" onclick="selectMonthPreview('+i+')">'+m.name+'</button>';});
+  document.getElementById('month-btns-preview').innerHTML=h2;
+}
+function selectMonthmarcação(i){selMonth=i;selDay=1;selWeek=0;buildMonthBtns();buildWeekTabs();buildDaysGridmarcação();rendermarcação();}
+function selectMonthPreview(i){previewMonth=i;previewWeek=0;buildMonthBtns();buildWeekTabsPreview();renderPreview();}
+
+function buildWeekTabs(){
+  var weeks=getWeeks(selMonth);
+  var h='';
+  weeks.forEach(function(w,i){
+    var label='Semana '+(i+1)+' ('+w[0]+'-'+w[w.length-1]+')';
+    h+='<button class="week-tab '+(i===selWeek?'active':'')+'" onclick="selectWeek('+i+')">'+label+'</button>';
+  });
+  document.getElementById('week-tabs').innerHTML=h;
+}
+function selectWeek(i){selWeek=i;var weeks=getWeeks(selMonth);selDay=weeks[i][0];buildWeekTabs();buildDaysGridmarcação();rendermarcação();}
+
+function buildWeekTabsPreview(){
+  var weeks=getWeeks(previewMonth);
+  var h='<button class="week-tab '+(previewWeek===-1?'active':'')+'" onclick="selectPreviewWeek(-1)">📅 Mês completo</button>';
+  weeks.forEach(function(w,i){
+    var label='Sem. '+(i+1)+' ('+w[0]+'-'+w[w.length-1]+')';
+    h+='<button class="week-tab '+(i===previewWeek?'active':'')+'" onclick="selectPreviewWeek('+i+')">'+label+'</button>';
+  });
+  document.getElementById('week-tabs-preview').innerHTML=h;
+}
+function selectPreviewWeek(i){previewWeek=i;buildWeekTabsPreview();renderPreview();}
+
+function buildDaysGridmarcação(){
+  var weeks=getWeeks(selMonth);
+  var week=weeks[selWeek]||weeks[0];
+  document.getElementById('day-label-marcação').textContent='Semana '+(selWeek+1)+' — Dia '+selDay+' de '+MONTHS[selMonth].name;
+  var el=document.getElementById('days-grid-marcação');el.innerHTML='';
+  week.forEach(function(d){
+    var sel=d===selDay;
+    var bA=marks[mk(selMonth,d,0,'A')]; // check aggregate
+    var bCount=0;
+    people.forEach(function(p){if(marks[mk(selMonth,d,p.id,'A')]==='B'||marks[mk(selMonth,d,p.id,'F')]==='B')bCount++;});
+    var pct=people.length?bCount/people.length:0;
+    var btn=document.createElement('button');
+    btn.className='day-pill';
+    btn.textContent=d;
+    btn.style.background=sel?'#f59e0b':'rgba(16,185,129,'+(pct*0.6)+')';
+    btn.style.border=sel?'2px solid #f59e0b':'1px solid rgba(255,255,255,0.12)';
+    btn.style.color=sel?'#000':'#f0f0f0';
+    btn.style.fontWeight=sel?'700':'400';
+    (function(day){btn.onclick=function(){selDay=day;buildDaysGridmarcação();rendermarcação();};})(d);
+    el.appendChild(btn);
+  });
+}
+
+// ===================== FILTERS =====================
+function populateGroupFilters(){
+  var opts='<option value="Todos">Todos os grupos</option>';
+  groups.forEach(function(g){opts+='<option value="'+g.id+'">'+g.name+'</option>';});
+  var gf=document.getElementById('group-filter');if(gf)gf.innerHTML=opts;
+  var gfp=document.getElementById('group-filter-preview');if(gfp)gfp.innerHTML=opts;
+  var mg=document.getElementById('modal-group');if(mg){mg.innerHTML=opts.replace('<option value="Todos">Todos os grupos</option>','');}
+  var mmg=document.getElementById('modal-move-group');if(mmg){mmg.innerHTML=opts.replace('<option value="Todos">Todos os grupos</option>','');}
+}
+
+function getFilteredPeople(groupFilter, searchVal){
+  return people.filter(function(p){
+    var sg=groupFilter==='Todos'||p.groupId===groupFilter;
+    var ss=!searchVal||p.name.toLowerCase().indexOf(searchVal.toLowerCase())>=0;
+    return sg&&ss;
+  });
+}
+
+// ===================== marcação =====================
+function cycleStatus(pid,af){
+  var key=mk(selMonth,selDay,pid,af);
+  var cur=marks[key]||null;
+  var nxt=nextStatus(cur);
+  if(nxt===null)delete marks[key];else marks[key]=nxt;
+  rendermarcação();scheduleMarks();
+}
+
+function rendermarcação(){
+  var search=(document.getElementById('search-marcação')||{value:''}).value;
+  var gf=(document.getElementById('group-filter')||{value:'Todos'}).value;
+  var fp=getFilteredPeople(gf,search);
+
+  // Stats
+  var totalB=0,totalS=0,totalN=0,totalVazio=0;
+  people.forEach(function(p){
+    var va=marks[mk(selMonth,selDay,p.id,'A')],vf=marks[mk(selMonth,selDay,p.id,'F')];
+    if(va==='B'||vf==='B')totalB++;
+    else if(va==='S'||vf==='S')totalS++;
+    else if(va==='N'||vf==='N')totalN++;
+    else totalVazio++;
+  });
+  document.getElementById('stats-bar').innerHTML=
+    '<div class="stat-chip" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">✅ <strong>'+totalB+'</strong> Bom</div>'+
+    '<div class="stat-chip" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">〰️ <strong>'+totalS+'</strong> Superficial</div>'+
+    '<div class="stat-chip" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">❌ <strong>'+totalN+'</strong> Não fez</div>'+
+    '<div class="stat-chip" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">⬜ <strong>'+totalVazio+'</strong> Sem registro</div>';
+
+  if(!fp.length){document.getElementById('people-list-marcação').innerHTML='<div style="text-align:center;padding:30px;color:#64748b">Nenhuma pessoa encontrada</div>';return;}
+
+  // Group by groupId
+  var grouped={};
+  fp.forEach(function(p){
+    if(!grouped[p.groupId])grouped[p.groupId]=[];
+    grouped[p.groupId].push(p);
+  });
+
+  var html='';
+  groups.forEach(function(g){
+    if(!grouped[g.id]||!grouped[g.id].length)return;
+    html+='<div class="group-header" style="background:'+g.color+'18;border:1px solid '+g.color+'33">'+
+      '<span class="group-badge" style="background:'+g.color+'33;color:'+g.color+'">'+g.name+'</span>'+
+      '<span style="font-size:11px;color:#64748b">'+grouped[g.id].length+' pessoas</span></div>';
+    grouped[g.id].forEach(function(p){
+      var va=marks[mk(selMonth,selDay,p.id,'A')]||null;
+      var vf=marks[mk(selMonth,selDay,p.id,'F')]||null;
+      var st=getMonthStats(p.id,selMonth);
+      var rowBg=va==='B'?'rgba(16,185,129,0.1)':va==='S'?'rgba(245,158,11,0.08)':va==='N'?'rgba(239,68,68,0.08)':'rgba(255,255,255,0.03)';
+      var rowBd=va==='B'?'1px solid rgba(16,185,129,0.3)':va==='S'?'1px solid rgba(245,158,11,0.25)':va==='N'?'1px solid rgba(239,68,68,0.25)':'1px solid rgba(255,255,255,0.07)';
+      html+='<div class="person-row" style="background:'+rowBg+';border:'+rowBd+'">'+
+        '<div><div style="font-size:13px;font-weight:'+(p.isLeader?700:400)+'">'+(p.isLeader?'👑 ':'')+p.name+'</div></div>'+
+        '<div class="af-col"><div class="af-lbl">A</div><button class="status-btn st-'+(va||'none')+'" onclick="cycleStatus('+p.id+',\'A\')">'+(va||'—')+'</button></div>'+
+        '<div class="af-col"><div class="af-lbl">F</div><button class="status-btn st-'+(vf||'none')+'" onclick="cycleStatus('+p.id+',\'F\')">'+(vf||'—')+'</button></div>'+
+        '<div class="person-stat"><div style="color:#10b981">B:'+st.ab+'/'+st.fb+'</div><div style="color:#f59e0b">S:'+st.as+'/'+st.fs+'</div><div style="color:#ef4444">N:'+st.an+'/'+st.fn+'</div></div>'+
+      '</div>';
+    });
+  });
+  document.getElementById('people-list-marcação').innerHTML=html;
+}
+
+// ===================== PREVIEW =====================
+function renderPreview(){
+  var gf=(document.getElementById('group-filter-preview')||{value:'Todos'}).value;
+  var fp=getFilteredPeople(gf,'');
+  var month=previewMonth;
+  var allDays=[];
+  var weeks=getWeeks(month);
+  var daysToShow=[];
+
+  if(previewWeek===-1){
+    for(var d=1;d<=MONTHS[month].days;d++)daysToShow.push(d);
+  } else {
+    daysToShow=weeks[previewWeek]||weeks[0];
+  }
+
+  // Build table
+  var th='<tr><th style="min-width:140px;text-align:left;padding-left:8px">Pessoa</th>';
+  daysToShow.forEach(function(d,i){
+    // Add week separator
+    var isNewWeek=false;
+    if(previewWeek===-1){
+      weeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNewWeek=true;});
+    }
+    th+='<th colspan="2" style="'+(isNewWeek?'border-left:2px solid rgba(255,255,255,0.15)':'')+'">'+(isNewWeek?'<span style="color:rgba(255,255,255,0.3)">|</span> ':'')+d+'</th>';
+  });
+  th+='<th style="min-width:60px">% B</th></tr>';
+
+  // Sub-header A/F
+  th+='<tr><th></th>';
+  daysToShow.forEach(function(d,i){
+    var isNewWeek=false;
+    if(previewWeek===-1){weeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNewWeek=true;});}
+    th+='<th style="font-size:9px;color:#94a3b8;'+(isNewWeek?'border-left:2px solid rgba(255,255,255,0.15)':'')+'">A</th><th style="font-size:9px;color:#94a3b8">F</th>';
+  });
+  th+='<th></th></tr>';
+
+  var rows='';
+  // Group rows
+  var grouped={};
+  fp.forEach(function(p){if(!grouped[p.groupId])grouped[p.groupId]=[];grouped[p.groupId].push(p);});
+
+  groups.forEach(function(g){
+    if(!grouped[g.id]||!grouped[g.id].length)return;
+    // Group header row
+    rows+='<tr><td colspan="'+(daysToShow.length*2+2)+'" style="padding:6px 8px;background:'+g.color+'15;color:'+g.color+';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">'+g.name+'</td></tr>';
+    grouped[g.id].forEach(function(p){
+      var totalB=0,total=daysToShow.length*2;
+      rows+='<tr><td>'+(p.isLeader?'👑 ':'')+p.name+'</td>';
+      daysToShow.forEach(function(d,i){
+        var isNewWeek=false;
+        if(previewWeek===-1){weeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNewWeek=true;});}
+        var bdStyle=isNewWeek?'border-left:2px solid rgba(255,255,255,0.15)':'';
+        var va=marks[mk(month,d,p.id,'A')]||null;
+        var vf=marks[mk(month,d,p.id,'F')]||null;
+        if(va==='B')totalB++;if(vf==='B')totalB++;
+        rows+='<td style="'+bdStyle+'"><div class="prev-cell prev-'+(va||'empty')+'">'+(va||'·')+'</div></td>';
+        rows+='<td><div class="prev-cell prev-'+(vf||'empty')+'">'+(vf||'·')+'</div></td>';
+      });
+      var pct=Math.round((totalB/total)*100);
+      var pc=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+      rows+='<td style="font-weight:700;color:'+pc+';font-size:12px">'+pct+'%</td></tr>';
+    });
+  });
+
+  document.getElementById('preview-table').innerHTML='<thead>'+th+'</thead><tbody>'+rows+'</tbody>';
+
+  // Group summary cards
+  var statsHtml='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px">';
+  groups.forEach(function(g){
+    var grp=getFilteredPeople(g.id,'');
+    if(!grp.length)return;
+    var totalB=0,totalDays=grp.length*MONTHS[month].days*2;
+    grp.forEach(function(p){var s=getMonthStats(p.id,month);totalB+=s.ab+s.fb;});
+    var pct=totalDays?Math.round((totalB/totalDays)*100):0;
+    var pc=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+    statsHtml+='<div style="flex:1;min-width:130px;background:'+g.color+'12;border:1px solid '+g.color+'33;border-radius:12px;padding:12px">'+
+      '<div style="font-size:11px;font-weight:700;color:'+g.color+';margin-bottom:4px">'+g.name+'</div>'+
+      '<div style="font-size:20px;font-weight:800;color:'+pc+'">'+pct+'%</div>'+
+      '<div style="font-size:10px;color:#64748b">'+grp.length+' pessoas — mês completo</div>'+
+      '<div style="margin-top:6px;height:3px;border-radius:2px;background:rgba(255,255,255,0.1)"><div style="height:100%;border-radius:2px;width:'+pct+'%;background:'+g.color+'"></div></div>'+
+    '</div>';
+  });
+  statsHtml+='</div>';
+  document.getElementById('preview-group-stats').innerHTML=statsHtml;
+}
+
+// ===================== ADMIN =====================
+function createGroup(){
+  var name=document.getElementById('new-group-name').value.trim();
+  var color=document.getElementById('new-group-color').value;
+  if(!name){alert('Digite o nome do grupo.');return;}
+  var id='grp-'+Date.now();
+  groups.push({id:id,name:name,color:color});
+  document.getElementById('new-group-name').value='';
+  saveGroupsDB();populateGroupFilters();renderAdmin();
+}
+
+function deleteGroup(gid){
+  var grpPeople=people.filter(function(p){return p.groupId===gid;});
+  if(grpPeople.length){alert('Remova ou mova todas as pessoas deste grupo antes de excluí-lo.');return;}
+  if(!confirm('Excluir grupo?'))return;
+  groups=groups.filter(function(g){return g.id!==gid;});
+  saveGroupsDB();populateGroupFilters();renderAdmin();
+}
+
+function renderAdmin(){
+  var html='';
+  groups.forEach(function(g){
+    var grpPeople=people.filter(function(p){return p.groupId===g.id;});
+    html+='<div class="group-card">'+
+      '<div class="group-card-header">'+
+        '<div class="group-name-display">'+
+          '<span style="width:14px;height:14px;border-radius:50%;background:'+g.color+';display:inline-block"></span>'+
+          '<span>'+g.name+'</span>'+
+          '<span style="font-size:12px;color:#64748b;font-weight:400">'+grpPeople.length+' pessoas</span>'+
+        '</div>'+
+        '<div style="display:flex;gap:6px">'+
+          '<button class="btn-success" onclick="openAddPerson(\''+g.id+'\')">➕ Adicionar</button>'+
+          '<button class="btn-secondary" style="font-size:12px;background:rgba(239,68,68,0.15);color:#ef4444" onclick="deleteGroup(\''+g.id+'\')">🗑️ Excluir grupo</button>'+
+        '</div>'+
+      '</div>';
+
+    if(grpPeople.length===0){
+      html+='<div style="font-size:12px;color:#4a5568;padding:8px">Nenhuma pessoa neste grupo.</div>';
+    } else {
+      grpPeople.forEach(function(p){
+        html+='<div class="person-admin-row">'+
+          '<span class="person-admin-name">'+(p.isLeader?'👑 ':'')+p.name+'</span>'+
+          '<button class="leader-toggle" style="background:'+(p.isLeader?'rgba(245,158,11,0.2)':'rgba(255,255,255,0.08)')+';color:'+(p.isLeader?'#f59e0b':'#64748b')+'" onclick="toggleLeader('+p.id+')">'+
+            (p.isLeader?'👑 Líder':'Tornar líder')+'</button>'+
+          '<button class="btn-icon btn-move" onclick="openMove('+p.id+')" title="Mover de grupo">↕️</button>'+
+          '<button class="btn-icon" style="background:rgba(99,102,241,0.15);color:#818cf8" onclick="openEditPerson('+p.id+')" title="Editar">✏️</button>'+
+          '<button class="btn-icon btn-danger" onclick="deletePerson('+p.id+')" title="Remover">🗑️</button>'+
+        '</div>';
+      });
+    }
+    html+='</div>';
+  });
+  document.getElementById('admin-groups-list').innerHTML=html;
+}
+
+function toggleLeader(pid){
+  var p=people.find(function(x){return x.id===pid;});
+  if(p){p.isLeader=!p.isLeader;savePeopleDB();renderAdmin();rendermarcação();}
+}
+function deletePerson(pid){
+  if(!confirm('Remover esta pessoa?'))return;
+  people=people.filter(function(p){return p.id!==pid;});
+  savePeopleDB();renderAdmin();rendermarcação();
+}
+
+// Modal add/edit person
+function openAddPerson(gid){
+  editingPersonId=null;
+  document.getElementById('modal-title').textContent='Adicionar Pessoa';
+  document.getElementById('modal-name').value='';
+  document.getElementById('modal-leader').checked=false;
+  populateGroupFilters();
+  document.getElementById('modal-group').value=gid;
+  document.getElementById('modal-person').classList.add('open');
+}
+function openEditPerson(pid){
+  var p=people.find(function(x){return x.id===pid;});if(!p)return;
+  editingPersonId=pid;
+  document.getElementById('modal-title').textContent='Editar Pessoa';
+  document.getElementById('modal-name').value=p.name;
+  document.getElementById('modal-leader').checked=p.isLeader;
+  populateGroupFilters();
+  document.getElementById('modal-group').value=p.groupId;
+  document.getElementById('modal-person').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-person').classList.remove('open');}
+function savePerson(){
+  var name=document.getElementById('modal-name').value.trim();
+  var gid=document.getElementById('modal-group').value;
+  var leader=document.getElementById('modal-leader').checked;
+  if(!name){alert('Digite o nome.');return;}
+  if(editingPersonId){
+    var p=people.find(function(x){return x.id===editingPersonId;});
+    if(p){p.name=name;p.groupId=gid;p.isLeader=leader;}
+  } else {
+    people.push({id:nextId++,groupId:gid,name:name,isLeader:leader});
+  }
+  savePeopleDB();closeModal();populateGroupFilters();renderAdmin();rendermarcação();
+}
+
+// Modal move
+function openMove(pid){
+  movingPersonId=pid;
+  var p=people.find(function(x){return x.id===pid;});if(!p)return;
+  document.getElementById('modal-move-name').textContent='Mover: '+p.name;
+  populateGroupFilters();
+  document.getElementById('modal-move-group').value=p.groupId;
+  document.getElementById('modal-move').classList.add('open');
+}
+function closeMoveModal(){document.getElementById('modal-move').classList.remove('open');}
+function confirmMove(){
+  var gid=document.getElementById('modal-move-group').value;
+  var p=people.find(function(x){return x.id===movingPersonId;});
+  if(p){p.groupId=gid;savePeopleDB();renderAdmin();rendermarcação();}
+  closeMoveModal();
+}
+
+// ===================== BOOT =====================
+document.getElementById('btn-connect').onclick=connectFirebase;
+(function(){
+  var saved=localStorage.getItem('fb_config');
+  if(saved){
+    try{
+      var cfg=JSON.parse(saved);
+      document.getElementById('cfg-apiKey').value=cfg.apiKey;
+      document.getElementById('cfg-authDomain').value=cfg.authDomain;
+      document.getElementById('cfg-projectId').value=cfg.projectId;
+      doConnect(cfg);
+    }catch(e){localStorage.removeItem('fb_config');}
+  }
+})();
+</script>
+</body>
+</html>
