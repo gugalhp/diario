@@ -24,11 +24,11 @@
 
   #app { display:none; }
   .header { background:rgba(255,255,255,0.05); border-bottom:1px solid rgba(255,255,255,0.1); padding:16px 24px; }
-  .header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .header-inner { max-width:960px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
   .view-btn { padding:8px 18px; border-radius:20px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
   .view-btn.active { background:#f59e0b; color:#000; }
   .view-btn.inactive { background:rgba(255,255,255,0.1); color:#fff; }
-  .container { max-width:900px; margin:0 auto; padding:20px 16px; }
+  .container { max-width:960px; margin:0 auto; padding:20px 16px; }
   .card { background:rgba(255,255,255,0.05); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1); }
   .month-btn { padding:6px 14px; border-radius:20px; border:none; cursor:pointer; font-size:13px; transition:all 0.2s; margin:3px; }
   .month-btn.active { background:#f59e0b; color:#000; font-weight:700; }
@@ -37,12 +37,31 @@
   .search-input { flex:1; min-width:180px; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:#fff; font-size:14px; outline:none; }
   .search-input::placeholder { color:#64748b; }
   .role-select { padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:rgba(20,20,50,0.95); color:#fff; font-size:13px; cursor:pointer; }
-  .person-row { display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:12px; cursor:pointer; transition:all 0.15s; user-select:none; margin-bottom:6px; }
-  .check-circle { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+
+  /* Legenda */
+  .legenda-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px; background:rgba(255,255,255,0.04); border-radius:12px; padding:12px 16px; border:1px solid rgba(255,255,255,0.08); }
+  .legenda-item { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .leg-badge { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+
+  /* Person row com A e F */
+  .person-row { display:grid; grid-template-columns:1fr auto auto auto; align-items:center; gap:10px; padding:10px 14px; border-radius:12px; transition:all 0.15s; margin-bottom:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); }
+  .person-name-col { min-width:0; }
+  .af-col { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .af-label { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
+  .status-btn { width:36px; height:36px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-size:14px; transition:all 0.15s; }
+  .status-none { background:rgba(255,255,255,0.08); color:#64748b; }
+  .status-B { background:#10b981; color:#fff; }
+  .status-S { background:#f59e0b; color:#000; }
+  .status-N { background:#ef4444; color:#fff; }
+
+  .person-stats-col { font-size:11px; color:#64748b; text-align:right; min-width:50px; }
+
   .role-card { flex:1; min-width:130px; background:rgba(255,255,255,0.05); border-radius:12px; padding:14px; margin:4px; }
   .table-card { background:rgba(255,255,255,0.04); border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); }
-  .table-header { padding:12px 16px; background:rgba(255,255,255,0.06); font-size:13px; font-weight:700; color:#94a3b8; display:grid; grid-template-columns:1fr 60px 50px 110px; gap:8px; }
-  .table-row { padding:11px 16px; border-top:1px solid rgba(255,255,255,0.05); display:grid; grid-template-columns:1fr 60px 50px 110px; gap:8px; align-items:center; font-size:13px; }
+  .table-header { padding:12px 16px; background:rgba(255,255,255,0.06); font-size:12px; font-weight:700; color:#94a3b8; display:grid; grid-template-columns:1fr 45px 45px 45px 45px 55px 100px; gap:6px; }
+  .table-row { padding:10px 16px; border-top:1px solid rgba(255,255,255,0.05); display:grid; grid-template-columns:1fr 45px 45px 45px 45px 55px 100px; gap:6px; align-items:center; font-size:12px; }
+  .tbl-badge { display:inline-block; padding:2px 7px; border-radius:6px; font-weight:700; font-size:12px; text-align:center; }
+
   .sync-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
   .sync-ok { background:#10b981; }
   .sync-saving { background:#f59e0b; animation:pulse 1s infinite; }
@@ -56,16 +75,12 @@
 <div id="setup-screen">
   <div class="setup-box">
     <h2>⚙️ Configurar Firebase</h2>
-    <p style="font-size:14px;color:#94a3b8;margin-bottom:20px;line-height:1.7">
-      Conecte ao banco de dados para que todos vejam as mesmas marcações em tempo real.
-    </p>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:20px;line-height:1.7">Cole os dados do seu projeto Firebase para conectar o banco de dados compartilhado.</p>
     <p style="font-size:13px;color:#e2e8f0;line-height:1.9;margin-bottom:20px">
-      <span class="step-num">1</span> Acesse <a href="https://console.firebase.google.com" target="_blank" class="help-link">console.firebase.google.com</a> e crie um projeto<br>
-      <span class="step-num">2</span> No menu lateral: <strong>Firestore Database → Criar banco → Modo de teste</strong><br>
-      <span class="step-num">3</span> Na tela inicial do projeto: clique no ícone <code>&lt;/&gt;</code> (ou vá em <strong>Configurações ⚙️ → Seus apps → Adicionar app</strong>)<br>
-      <span class="step-num">4</span> Copie o <code>apiKey</code>, <code>authDomain</code> e <code>projectId</code> que aparecerem
+      <span class="step-num">1</span> Acesse <a href="https://console.firebase.google.com" target="_blank" class="help-link">console.firebase.google.com</a> e abra seu projeto<br>
+      <span class="step-num">2</span> Menu lateral → <strong>Firestore Database → Criar banco → Modo de teste</strong><br>
+      <span class="step-num">3</span> Engrenagem ⚙️ → <strong>Configurações do projeto → Seus apps</strong> → copie os dados
     </p>
-
     <div class="setup-step">
       <label>API Key</label>
       <input class="setup-input" id="cfg-apiKey" placeholder="AIzaSy...">
@@ -78,13 +93,11 @@
       <label>Project ID</label>
       <input class="setup-input" id="cfg-projectId" placeholder="meu-projeto">
     </div>
-
     <button class="btn-connect" id="btn-connect">🔗 Conectar e abrir sistema</button>
     <div class="setup-error" id="setup-error"></div>
     <div class="setup-loading" id="setup-loading">⏳ Conectando ao Firebase...</div>
-
     <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0">
-    <p style="font-size:12px;color:#64748b">💡 A configuração fica salva no navegador — na próxima vez abre automaticamente.</p>
+    <p style="font-size:12px;color:#64748b">💡 A configuração fica salva. Na próxima vez abre automaticamente.</p>
   </div>
 </div>
 
@@ -111,19 +124,35 @@
   </div>
 
   <div class="container">
+    <!-- Mês -->
     <div class="card">
       <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">Mês</div>
       <div id="month-btns"></div>
     </div>
+
+    <!-- Dias -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px" id="day-label">Dias selecionados: nenhum</div>
+        <div style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px" id="day-label">Selecione um dia</div>
         <button onclick="selectAllDays()" style="font-size:11px;background:rgba(255,255,255,0.1);border:none;color:#94a3b8;border-radius:8px;padding:4px 10px;cursor:pointer">Todos</button>
       </div>
       <div id="days-grid"></div>
     </div>
 
+    <!-- MARCAR -->
     <div id="view-marcar">
+
+      <!-- Legenda -->
+      <div class="legenda-bar">
+        <span style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px">Legenda:</span>
+        <div class="legenda-item"><div class="leg-badge status-B">B</div><span style="color:#10b981"><strong>Bom</strong> — fez o diário</span></div>
+        <div class="legenda-item"><div class="leg-badge status-S">S</div><span style="color:#f59e0b"><strong>Superficial</strong> — fez de forma superficial</span></div>
+        <div class="legenda-item"><div class="leg-badge status-N">N</div><span style="color:#ef4444"><strong>Não fez</strong></span></div>
+        <div class="legenda-item" style="margin-left:8px;border-left:1px solid rgba(255,255,255,0.1);padding-left:12px">
+          <span style="color:#94a3b8;font-size:12px"><strong style="color:#e2e8f0">A</strong> = Abertura do diário &nbsp;|&nbsp; <strong style="color:#e2e8f0">F</strong> = Fechamento</span>
+        </div>
+      </div>
+
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
         <input class="search-input" id="search" placeholder="🔍 Buscar pessoa..." oninput="render()">
         <select class="role-select" id="role-filter" onchange="render()">
@@ -133,10 +162,9 @@
           <option value="Coordenador">Coordenador</option>
           <option value="Acompanhador">Acompanhador</option>
         </select>
-        <button onclick="markAll()" style="padding:10px 14px;border-radius:10px;border:none;background:#10b981;color:#fff;font-size:13px;cursor:pointer;font-weight:600">✅ Marcar todos</button>
-        <button onclick="clearAll()" style="padding:10px 14px;border-radius:10px;border:none;background:#ef4444;color:#fff;font-size:13px;cursor:pointer;font-weight:600">❌ Desmarcar</button>
-        <button onclick="toggleAddForm()" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:13px;cursor:pointer">➕ Adicionar</button>
+        <button onclick="toggleAddForm()" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:13px;cursor:pointer">➕ Adicionar pessoa</button>
       </div>
+
       <div id="add-form" style="display:none;background:rgba(255,255,255,0.08);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.2)">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input id="new-name" placeholder="Nome da pessoa" style="flex:1;min-width:180px;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;font-size:14px;outline:none">
@@ -147,22 +175,40 @@
           <button onclick="toggleAddForm()" style="padding:9px 18px;border-radius:8px;background:rgba(255,255,255,0.1);border:none;color:#fff;cursor:pointer">Cancelar</button>
         </div>
       </div>
+
       <div id="stats-bar" style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap"></div>
+
+      <!-- Cabeçalho da lista -->
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;padding:6px 14px;margin-bottom:4px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Pessoa</div>
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:center;width:80px">Abertura (A)</div>
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:center;width:80px">Fechamento (F)</div>
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;text-align:right;min-width:50px">Mês</div>
+      </div>
+
       <div id="people-list"></div>
     </div>
 
+    <!-- RESUMO -->
     <div id="view-resumo" style="display:none">
       <div id="resumo-title" style="margin-bottom:16px;font-size:16px;font-weight:700;color:#f59e0b"></div>
       <div id="role-cards" style="display:flex;flex-wrap:wrap;margin-bottom:20px"></div>
       <div class="table-card">
-        <div class="table-header"><span>Pessoa</span><span>Dias</span><span>%</span><span>Cargo</span></div>
+        <div class="table-header">
+          <span>Pessoa</span>
+          <span style="text-align:center">A-B</span>
+          <span style="text-align:center">A-S</span>
+          <span style="text-align:center">F-B</span>
+          <span style="text-align:center">F-S</span>
+          <span style="text-align:center">% Bom</span>
+          <span>Cargo</span>
+        </div>
         <div id="resumo-table"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Firebase Compat (funciona no escopo global, sem "module") -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
@@ -176,6 +222,10 @@ var ROLE_COLORS = {
   "Anjo":{badge:"#f59e0b"},"Coordenadora":{badge:"#ec4899"},
   "Coordenador":{badge:"#8b5cf6"},"Acompanhador":{badge:"#0ea5e9"}
 };
+
+// Status cycle: null -> B -> S -> N -> null
+var STATUS_CYCLE = [null, 'B', 'S', 'N'];
+
 var DEFAULT_PEOPLE = [
   {id:1,role:"Anjo",name:"Daniela Felix",isLeader:true},
   {id:2,role:"Anjo",name:"Poliana Clarissa",isLeader:false},
@@ -255,279 +305,243 @@ var DEFAULT_PEOPLE = [
 
 var db = null;
 var people = DEFAULT_PEOPLE.slice();
-var marks = {};
+var marks = {}; // key: "month-day-pid-AF" -> "B"|"S"|"N"
 var selectedMonth = new Date().getMonth();
-var selectedDays = [new Date().getDate()];
+var selectedDay = new Date().getDate();
 var currentView = 'marcar';
 var nextId = 75;
 var saveTimeout = null;
 
+// ---- FIREBASE ----
 function setSyncStatus(s, t) {
   document.getElementById('sync-dot').className = 'sync-dot sync-' + s;
   document.getElementById('sync-text').textContent = t;
 }
-
 function showErr(msg) {
   var el = document.getElementById('setup-error');
-  el.textContent = msg;
-  el.style.display = 'block';
+  el.textContent = msg; el.style.display = 'block';
   document.getElementById('setup-loading').style.display = 'none';
 }
-
 function doConnect(cfg) {
   try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(cfg);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
     db = firebase.firestore();
-    db.collection('system').doc('ping').set({ ok: true })
+    db.collection('system').doc('ping').set({ok:true})
       .then(function() {
         localStorage.setItem('fb_config', JSON.stringify(cfg));
         initApp();
       })
-      .catch(function(e) {
-        showErr('Erro ao conectar: ' + e.message + '. Verifique se o Firestore está em modo de teste.');
-      });
-  } catch(e) {
-    showErr('Erro: ' + e.message);
-  }
+      .catch(function(e) { showErr('Erro ao conectar: ' + e.message); });
+  } catch(e) { showErr('Erro: ' + e.message); }
 }
-
 function connectFirebase() {
-  var apiKey     = document.getElementById('cfg-apiKey').value.trim();
+  var apiKey = document.getElementById('cfg-apiKey').value.trim();
   var authDomain = document.getElementById('cfg-authDomain').value.trim();
-  var projectId  = document.getElementById('cfg-projectId').value.trim();
+  var projectId = document.getElementById('cfg-projectId').value.trim();
   if (!apiKey || !authDomain || !projectId) { showErr('Preencha todos os campos.'); return; }
   document.getElementById('setup-loading').style.display = 'block';
   document.getElementById('setup-error').style.display = 'none';
-  doConnect({ apiKey: apiKey, authDomain: authDomain, projectId: projectId });
+  doConnect({apiKey:apiKey, authDomain:authDomain, projectId:projectId});
 }
-
 function resetConfig() {
   if (confirm('Reconfigurar Firebase?')) { localStorage.removeItem('fb_config'); location.reload(); }
 }
-
 function initApp() {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   setSyncStatus('saving', 'Carregando...');
-
   db.collection('config').doc('people').get().then(function(snap) {
     if (snap.exists) {
       people = snap.data().list;
-      nextId = Math.max.apply(null, people.map(function(p) { return p.id; })) + 1;
+      nextId = Math.max.apply(null, people.map(function(p){return p.id;})) + 1;
     } else {
-      db.collection('config').doc('people').set({ list: DEFAULT_PEOPLE });
+      db.collection('config').doc('people').set({list:DEFAULT_PEOPLE});
     }
-
     db.collection('marks').doc('data').onSnapshot(function(snap) {
       marks = snap.exists ? (snap.data().marks || {}) : {};
       setSyncStatus('ok', 'Sincronizado');
       render();
       if (currentView === 'resumo') renderResumo();
       buildDaysGrid();
-    }, function() {
-      setSyncStatus('err', 'Erro de conexão');
-    });
-
+    }, function() { setSyncStatus('err', 'Erro de conexão'); });
     buildMonthBtns();
     buildDaysGrid();
     render();
   });
 }
-
 function saveMarks() {
   if (!db) return;
   setSyncStatus('saving', 'Salvando...');
-  db.collection('marks').doc('data').set({ marks: marks })
-    .then(function() { setSyncStatus('ok', 'Sincronizado'); })
-    .catch(function() { setSyncStatus('err', 'Erro ao salvar'); });
+  db.collection('marks').doc('data').set({marks:marks})
+    .then(function(){ setSyncStatus('ok','Sincronizado'); })
+    .catch(function(){ setSyncStatus('err','Erro ao salvar'); });
+}
+function scheduleMarks() { clearTimeout(saveTimeout); saveTimeout = setTimeout(saveMarks, 600); }
+function savePeople() { if (db) db.collection('config').doc('people').set({list:people}); }
+
+// ---- KEYS ----
+// key = "month-day-pid-A" ou "month-day-pid-F"
+function mk(pid, af) { return selectedMonth+'-'+selectedDay+'-'+pid+'-'+af; }
+
+// ---- STATUS CYCLE ----
+function nextStatus(current) {
+  var idx = STATUS_CYCLE.indexOf(current);
+  return STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+}
+function cycleStatus(pid, af) {
+  var key = mk(pid, af);
+  var cur = marks[key] || null;
+  var nxt = nextStatus(cur);
+  if (nxt === null) delete marks[key]; else marks[key] = nxt;
+  render();
+  scheduleMarks();
 }
 
-function scheduleMarks() {
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(saveMarks, 600);
-}
-
-function savePeople() {
-  if (db) db.collection('config').doc('people').set({ list: people });
-}
-
-function markKey(m, d, pid) { return m + '-' + d + '-' + pid; }
-
+// ---- UI ----
 function setView(v) {
   currentView = v;
-  document.getElementById('view-marcar').style.display = v === 'marcar' ? 'block' : 'none';
-  document.getElementById('view-resumo').style.display = v === 'resumo' ? 'block' : 'none';
-  document.getElementById('btn-marcar').className = 'view-btn ' + (v === 'marcar' ? 'active' : 'inactive');
-  document.getElementById('btn-resumo').className = 'view-btn ' + (v === 'resumo' ? 'active' : 'inactive');
-  if (v === 'resumo') renderResumo();
+  document.getElementById('view-marcar').style.display = v==='marcar'?'block':'none';
+  document.getElementById('view-resumo').style.display = v==='resumo'?'block':'none';
+  document.getElementById('btn-marcar').className = 'view-btn '+(v==='marcar'?'active':'inactive');
+  document.getElementById('btn-resumo').className = 'view-btn '+(v==='resumo'?'active':'inactive');
+  if (v==='resumo') renderResumo();
 }
-
 function toggleAddForm() {
   var f = document.getElementById('add-form');
-  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  f.style.display = f.style.display==='none'?'block':'none';
 }
-
 function addPerson() {
   var name = document.getElementById('new-name').value.trim();
   var role = document.getElementById('new-role').value;
   if (!name) { alert('Digite o nome.'); return; }
-  people.push({ id: nextId++, role: role, name: name, isLeader: false });
+  people.push({id:nextId++, role:role, name:name, isLeader:false});
   document.getElementById('new-name').value = '';
   document.getElementById('add-form').style.display = 'none';
-  savePeople();
-  render();
+  savePeople(); render();
 }
-
 function buildMonthBtns() {
   var html = '';
-  for (var i = 0; i < MONTHS.length; i++) {
-    html += '<button class="month-btn ' + (i === selectedMonth ? 'active' : 'inactive') + '" onclick="selectMonth(' + i + ')">' + MONTHS[i].name + '</button>';
-  }
+  for (var i=0;i<MONTHS.length;i++)
+    html += '<button class="month-btn '+(i===selectedMonth?'active':'inactive')+'" onclick="selectMonth('+i+')">'+MONTHS[i].name+'</button>';
   document.getElementById('month-btns').innerHTML = html;
 }
-
 function selectMonth(i) {
-  selectedMonth = i; selectedDays = [];
+  selectedMonth = i; selectedDay = 1;
   buildMonthBtns(); buildDaysGrid(); render();
 }
-
-function selectAllDays() {
-  selectedDays = [];
-  for (var d = 1; d <= MONTHS[selectedMonth].days; d++) selectedDays.push(d);
-  buildDaysGrid(); render();
-}
-
 function buildDaysGrid() {
   var total = MONTHS[selectedMonth].days;
   var el = document.getElementById('days-grid');
-  var sorted = selectedDays.slice().sort(function(a,b){return a-b;});
-  document.getElementById('day-label').textContent = selectedDays.length === 0
-    ? 'Dias selecionados: nenhum'
-    : 'Dias selecionados: ' + sorted.join(', ');
+  document.getElementById('day-label').textContent = 'Dia selecionado: ' + selectedDay + ' de ' + MONTHS[selectedMonth].name;
   el.innerHTML = '';
-  for (var d = 1; d <= total; d++) {
-    var sel = selectedDays.indexOf(d) >= 0;
-    var cnt = 0;
-    for (var pi = 0; pi < people.length; pi++) { if (marks[markKey(selectedMonth, d, people[pi].id)]) cnt++; }
-    var pct = people.length ? cnt / people.length : 0;
+  for (var d=1; d<=total; d++) {
+    var sel = d === selectedDay;
+    // count how many B marks exist on this day
+    var bCount = 0;
+    for (var pi=0;pi<people.length;pi++) {
+      var ka = selectedMonth+'-'+d+'-'+people[pi].id+'-A';
+      var kf = selectedMonth+'-'+d+'-'+people[pi].id+'-F';
+      if (marks[ka]==='B' || marks[kf]==='B') bCount++;
+    }
+    var pct = people.length ? bCount/people.length : 0;
     var btn = document.createElement('button');
     btn.className = 'day-btn';
     btn.textContent = d;
-    btn.style.background = sel ? '#f59e0b' : 'rgba(16,185,129,' + (pct * 0.5) + ')';
+    btn.style.background = sel ? '#f59e0b' : 'rgba(16,185,129,'+(pct*0.6)+')';
     btn.style.border = sel ? '2px solid #f59e0b' : '1px solid rgba(255,255,255,0.15)';
     btn.style.color = sel ? '#000' : '#f0f0f0';
     btn.style.fontWeight = sel ? '700' : '400';
-    (function(day) { btn.onclick = function() { toggleDay(day); }; })(d);
+    (function(day){ btn.onclick = function(){ selectAllDays(day); }; })(d);
     el.appendChild(btn);
   }
 }
-
-function toggleDay(d) {
-  var idx = selectedDays.indexOf(d);
-  if (idx >= 0) selectedDays.splice(idx, 1); else selectedDays.push(d);
+function selectAllDays(day) {
+  selectedDay = day || 1;
   buildDaysGrid(); render();
 }
 
 function getFiltered() {
   var search = document.getElementById('search') ? document.getElementById('search').value.toLowerCase() : '';
   var role = document.getElementById('role-filter') ? document.getElementById('role-filter').value : 'Todos';
-  return people.filter(function(p) {
-    return p.name.toLowerCase().indexOf(search) >= 0 && (role === 'Todos' || p.role === role);
+  return people.filter(function(p){
+    return p.name.toLowerCase().indexOf(search)>=0 && (role==='Todos'||p.role===role);
   });
 }
 
-function isMarked(pid) {
-  if (!selectedDays.length) return false;
-  for (var i = 0; i < selectedDays.length; i++) { if (!marks[markKey(selectedMonth, selectedDays[i], pid)]) return false; }
-  return true;
-}
+function statusClass(s) { return s ? 'status-'+s : 'status-none'; }
+function statusLabel(s) { return s || '—'; }
 
-function isPartial(pid) {
-  if (selectedDays.length <= 1) return false;
-  var c = 0;
-  for (var i = 0; i < selectedDays.length; i++) { if (marks[markKey(selectedMonth, selectedDays[i], pid)]) c++; }
-  return c > 0 && c < selectedDays.length;
-}
-
-function getMonthCount(pid) {
-  var total = MONTHS[selectedMonth].days, c = 0;
-  for (var d = 1; d <= total; d++) { if (marks[markKey(selectedMonth, d, pid)]) c++; }
-  return c;
-}
-
-function toggleMark(pid) {
-  var allMarked = isMarked(pid);
-  for (var i = 0; i < selectedDays.length; i++) {
-    var k = markKey(selectedMonth, selectedDays[i], pid);
-    if (allMarked) delete marks[k]; else marks[k] = true;
+function getMonthStats(pid) {
+  var total = MONTHS[selectedMonth].days;
+  var ab=0,as_=0,an=0,fb=0,fs=0,fn=0;
+  for (var d=1;d<=total;d++) {
+    var va = marks[selectedMonth+'-'+d+'-'+pid+'-A'];
+    var vf = marks[selectedMonth+'-'+d+'-'+pid+'-F'];
+    if (va==='B') ab++; else if (va==='S') as_++; else if (va==='N') an++;
+    if (vf==='B') fb++; else if (vf==='S') fs++; else if (vf==='N') fn++;
   }
-  render(); scheduleMarks();
-}
-
-function markAll() {
-  if (!selectedDays.length) { alert('Selecione ao menos um dia.'); return; }
-  var fp = getFiltered();
-  for (var i = 0; i < fp.length; i++)
-    for (var j = 0; j < selectedDays.length; j++)
-      marks[markKey(selectedMonth, selectedDays[j], fp[i].id)] = true;
-  render(); scheduleMarks();
-}
-
-function clearAll() {
-  if (!selectedDays.length) { alert('Selecione ao menos um dia.'); return; }
-  var fp = getFiltered();
-  for (var i = 0; i < fp.length; i++)
-    for (var j = 0; j < selectedDays.length; j++)
-      delete marks[markKey(selectedMonth, selectedDays[j], fp[i].id)];
-  render(); scheduleMarks();
+  return {ab:ab,as:as_,an:an,fb:fb,fs:fs,fn:fn};
 }
 
 function render() {
   buildDaysGrid();
   var fp = getFiltered();
   var mdays = MONTHS[selectedMonth].days;
-  var sb = document.getElementById('stats-bar');
 
-  if (selectedDays.length === 1) {
-    var d = selectedDays[0], total = people.length, marked = 0;
-    for (var i = 0; i < people.length; i++) { if (marks[markKey(selectedMonth, d, people[i].id)]) marked++; }
-    var pct = Math.round((marked / total) * 100);
-    sb.innerHTML =
-      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">✅ <strong>' + marked + '</strong> marcados</div>' +
-      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">❌ <strong>' + (total - marked) + '</strong> não marcados</div>' +
-      '<div style="border-radius:10px;padding:8px 16px;font-size:13px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">📊 <strong>' + pct + '%</strong> do grupo</div>';
-  } else sb.innerHTML = '';
+  // Stats bar
+  var sb = document.getElementById('stats-bar');
+  var totalB=0, totalS=0, totalN=0, totalVazio=0;
+  for (var i=0;i<people.length;i++){
+    var va = marks[mk(people[i].id,'A')];
+    var vf = marks[mk(people[i].id,'F')];
+    if (va==='B'||vf==='B') totalB++;
+    else if (va==='S'||vf==='S') totalS++;
+    else if (va==='N'||vf==='N') totalN++;
+    else totalVazio++;
+  }
+  sb.innerHTML =
+    '<div style="border-radius:10px;padding:8px 14px;font-size:13px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">✅ <strong>'+totalB+'</strong> Bom</div>'+
+    '<div style="border-radius:10px;padding:8px 14px;font-size:13px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">〰️ <strong>'+totalS+'</strong> Superficial</div>'+
+    '<div style="border-radius:10px;padding:8px 14px;font-size:13px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">❌ <strong>'+totalN+'</strong> Não fez</div>'+
+    '<div style="border-radius:10px;padding:8px 14px;font-size:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">⬜ <strong>'+totalVazio+'</strong> Sem registro</div>';
 
   var list = document.getElementById('people-list');
-  if (!selectedDays.length) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">👆 Selecione um ou mais dias para fazer marcações</div>';
-    return;
-  }
-  if (!fp.length) { list.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">Nenhuma pessoa encontrada</div>'; return; }
+  if (!fp.length) { list.innerHTML='<div style="text-align:center;padding:40px;color:#64748b">Nenhuma pessoa encontrada</div>'; return; }
 
   var html = '';
-  for (var i = 0; i < fp.length; i++) {
+  for (var i=0;i<fp.length;i++) {
     var p = fp[i];
-    var marked2 = isMarked(p.id), partial = isPartial(p.id);
-    var cnt = getMonthCount(p.id), pct2 = Math.round((cnt / mdays) * 100);
-    var c = ROLE_COLORS[p.role] || ROLE_COLORS['Acompanhador'];
-    var pc = pct2 >= 70 ? '#10b981' : pct2 >= 40 ? '#f59e0b' : '#ef4444';
-    var rowBg = marked2 ? 'rgba(16,185,129,0.18)' : partial ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)';
-    var rowBd = marked2 ? '1px solid rgba(16,185,129,0.5)' : partial ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.08)';
-    var cirBg = marked2 ? '#10b981' : partial ? '#f59e0b' : 'rgba(255,255,255,0.1)';
-    var chk = marked2 ? '✓' : partial ? '~' : '';
-    html += '<div class="person-row" style="background:' + rowBg + ';border:' + rowBd + '" onclick="toggleMark(' + p.id + ')">' +
-      '<div class="check-circle" style="background:' + cirBg + '">' + chk + '</div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<span style="font-size:14px;color:' + (marked2 ? '#6ee7b7' : '#f0f0f0') + ';font-weight:' + (p.isLeader ? 700 : 400) + '">' + (p.isLeader ? '👑 ' : '') + p.name + '</span>' +
-        '<span style="font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;background:' + c.badge + '22;color:' + c.badge + ';border:1px solid ' + c.badge + '44">' + p.role + '</span>' +
-      '</div>' +
-      '<div style="font-size:12px;color:#64748b;text-align:right;flex-shrink:0">' +
-        '<div>' + cnt + '/' + mdays + '</div>' +
-        '<div style="font-weight:700;color:' + pc + '">' + pct2 + '%</div>' +
-      '</div>' +
+    var va = marks[mk(p.id,'A')] || null;
+    var vf = marks[mk(p.id,'F')] || null;
+    var st = getMonthStats(p.id);
+    var c = ROLE_COLORS[p.role]||ROLE_COLORS['Acompanhador'];
+
+    // Row background based on A status
+    var rowBg = va==='B'?'rgba(16,185,129,0.1)':va==='S'?'rgba(245,158,11,0.08)':va==='N'?'rgba(239,68,68,0.08)':'rgba(255,255,255,0.04)';
+    var rowBd = va==='B'?'1px solid rgba(16,185,129,0.3)':va==='S'?'1px solid rgba(245,158,11,0.25)':va==='N'?'1px solid rgba(239,68,68,0.25)':'1px solid rgba(255,255,255,0.08)';
+
+    html += '<div class="person-row" style="background:'+rowBg+';border:'+rowBd+'">'+
+      // Nome
+      '<div class="person-name-col">'+
+        '<div style="font-size:14px;font-weight:'+(p.isLeader?700:400)+';color:#f0f0f0">'+(p.isLeader?'👑 ':'')+p.name+'</div>'+
+        '<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:'+c.badge+'22;color:'+c.badge+';border:1px solid '+c.badge+'44">'+p.role+'</span>'+
+      '</div>'+
+      // Coluna A
+      '<div class="af-col" style="width:80px">'+
+        '<div class="af-label">A</div>'+
+        '<button class="status-btn '+statusClass(va)+'" onclick="cycleStatus('+p.id+',\'A\')">'+statusLabel(va)+'</button>'+
+      '</div>'+
+      // Coluna F
+      '<div class="af-col" style="width:80px">'+
+        '<div class="af-label">F</div>'+
+        '<button class="status-btn '+statusClass(vf)+'" onclick="cycleStatus('+p.id+',\'F\')">'+statusLabel(vf)+'</button>'+
+      '</div>'+
+      // Stats mês
+      '<div class="person-stats-col">'+
+        '<div style="color:#10b981;font-weight:700">B: '+st.ab+'/'+st.fb+'</div>'+
+        '<div style="color:#f59e0b">S: '+st.as+'/'+st.fs+'</div>'+
+        '<div style="color:#ef4444">N: '+st.an+'/'+st.fn+'</div>'+
+      '</div>'+
     '</div>';
   }
   list.innerHTML = html;
@@ -535,49 +549,59 @@ function render() {
 
 function renderResumo() {
   var mdays = MONTHS[selectedMonth].days;
-  document.getElementById('resumo-title').textContent = '📊 Resumo — ' + MONTHS[selectedMonth].name + ' 2026';
-  var roles = ['Anjo', 'Coordenadora', 'Coordenador', 'Acompanhador'];
+  document.getElementById('resumo-title').textContent = '📊 Resumo — '+MONTHS[selectedMonth].name+' 2026';
+  var roles = ['Anjo','Coordenadora','Coordenador','Acompanhador'];
   var cardsHtml = '';
-  for (var r = 0; r < roles.length; r++) {
+  for (var r=0;r<roles.length;r++) {
     var role = roles[r];
-    var group = people.filter(function(p) { return p.role === role; });
-    var tp = group.length * mdays, tm = 0;
-    for (var i = 0; i < group.length; i++) tm += getMonthCount(group[i].id);
-    var pct = tp ? Math.round((tm / tp) * 100) : 0;
+    var group = people.filter(function(p){return p.role===role;});
+    var totalB=0, totalDays=group.length*mdays*2; // *2 pois tem A e F
+    for (var i=0;i<group.length;i++) {
+      var st = getMonthStats(group[i].id);
+      totalB += st.ab + st.fb;
+    }
+    var pct = totalDays ? Math.round((totalB/totalDays)*100) : 0;
     var c = ROLE_COLORS[role];
-    cardsHtml += '<div class="role-card" style="border:1px solid ' + c.badge + '44">' +
-      '<div style="font-size:12px;font-weight:700;color:' + c.badge + ';margin-bottom:6px">' + role + '</div>' +
-      '<div style="font-size:22px;font-weight:800">' + group.length + '</div>' +
-      '<div style="font-size:11px;color:#64748b">pessoas</div>' +
-      '<div style="margin-top:8px;height:4px;border-radius:2px;background:rgba(255,255,255,0.1)">' +
-        '<div style="height:100%;border-radius:2px;width:' + pct + '%;background:' + c.badge + '"></div></div>' +
-      '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + pct + '% do mês</div></div>';
+    cardsHtml += '<div class="role-card" style="border:1px solid '+c.badge+'44">'+
+      '<div style="font-size:12px;font-weight:700;color:'+c.badge+';margin-bottom:6px">'+role+'</div>'+
+      '<div style="font-size:22px;font-weight:800">'+group.length+'</div>'+
+      '<div style="font-size:11px;color:#64748b">pessoas</div>'+
+      '<div style="margin-top:8px;height:4px;border-radius:2px;background:rgba(255,255,255,0.1)">'+
+        '<div style="height:100%;border-radius:2px;width:'+pct+'%;background:'+c.badge+'"></div></div>'+
+      '<div style="font-size:11px;color:#94a3b8;margin-top:4px">'+pct+'% Bom no mês</div></div>';
   }
   document.getElementById('role-cards').innerHTML = cardsHtml;
 
-  var sorted = people.map(function(p) { return { id:p.id, name:p.name, role:p.role, isLeader:p.isLeader, cnt:getMonthCount(p.id) }; });
-  sorted.sort(function(a, b) { return b.cnt - a.cnt; });
   var tableHtml = '';
-  for (var i = 0; i < sorted.length; i++) {
+  var sorted = people.slice();
+  sorted.sort(function(a,b){
+    var sa=getMonthStats(a.id), sb=getMonthStats(b.id);
+    return (sb.ab+sb.fb)-(sa.ab+sa.fb);
+  });
+  for (var i=0;i<sorted.length;i++) {
     var p = sorted[i];
-    var pct2 = Math.round((p.cnt / mdays) * 100);
-    var pc = pct2 >= 70 ? '#10b981' : pct2 >= 40 ? '#f59e0b' : '#ef4444';
-    var c2 = ROLE_COLORS[p.role] || ROLE_COLORS['Acompanhador'];
-    tableHtml += '<div class="table-row">' +
-      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.isLeader ? '👑 ' : '') + p.name + '</span>' +
-      '<span style="color:#94a3b8">' + p.cnt + '/' + mdays + '</span>' +
-      '<span style="font-weight:700;color:' + pc + '">' + pct2 + '%</span>' +
-      '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:' + c2.badge + '22;color:' + c2.badge + '">' + p.role + '</span>' +
+    var st = getMonthStats(p.id);
+    var totalB2 = st.ab+st.fb;
+    var total2 = mdays*2;
+    var pct2 = Math.round((totalB2/total2)*100);
+    var pc = pct2>=70?'#10b981':pct2>=40?'#f59e0b':'#ef4444';
+    var c2 = ROLE_COLORS[p.role]||ROLE_COLORS['Acompanhador'];
+    tableHtml += '<div class="table-row">'+
+      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.isLeader?'👑 ':'')+p.name+'</span>'+
+      '<span style="text-align:center"><span class="tbl-badge" style="background:rgba(16,185,129,0.2);color:#10b981">'+st.ab+'</span></span>'+
+      '<span style="text-align:center"><span class="tbl-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">'+st.as+'</span></span>'+
+      '<span style="text-align:center"><span class="tbl-badge" style="background:rgba(16,185,129,0.2);color:#10b981">'+st.fb+'</span></span>'+
+      '<span style="text-align:center"><span class="tbl-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">'+st.fs+'</span></span>'+
+      '<span style="text-align:center;font-weight:700;color:'+pc+'">'+pct2+'%</span>'+
+      '<span><span style="font-size:11px;padding:2px 7px;border-radius:6px;background:'+c2.badge+'22;color:'+c2.badge+'">'+p.role+'</span></span>'+
     '</div>';
   }
   document.getElementById('resumo-table').innerHTML = tableHtml;
 }
 
-// Botão conectar
 document.getElementById('btn-connect').onclick = connectFirebase;
 
-// Auto-conectar se já tiver config salva
-(function() {
+(function(){
   var saved = localStorage.getItem('fb_config');
   if (saved) {
     try {
