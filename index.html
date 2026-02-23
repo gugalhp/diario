@@ -336,8 +336,12 @@ function initApp(){
           Object.keys(SEED_MARKS).forEach(function(k){merged[k]=SEED_MARKS[k];});
           Object.keys(existing).forEach(function(k){merged[k]=existing[k];});
           setSyncStatus('dsav','Importando '+seedCount+' marcações...');
-          db.collection('marks').doc('data').set({marks:merged}).then(startListening);
+          db.collection('marks').doc('data').set({marks:merged}).then(function(){
+            marks=merged;
+            startListening();
+          });
         } else {
+          marks=existing;
           startListening();
         }
       });
@@ -348,8 +352,12 @@ function initApp(){
 function startListening(){
   populateFilters();buildMonthBtns();buildWeekTabsM();buildDaysGrid();renderAll();
   db.collection('marks').doc('data').onSnapshot(function(s){
-    marks=s.exists?(s.data().marks||{}):{};
-    setSyncStatus('dok','Sincronizado');
+    var remote=s.exists?(s.data().marks||{}):{};
+    // Only update if remote has data or we don't have local data yet
+    if(Object.keys(remote).length>0 || Object.keys(marks).length===0){
+      marks=remote;
+    }
+    setSyncStatus('dok','Sincronizado ('+Object.keys(marks).length+')');
     renderAll();buildDaysGrid();
   },function(){setSyncStatus('derr','Erro de conexao');});
 }
@@ -786,7 +794,9 @@ function forceImportSeed(){
     var newCount=Object.keys(merged).length;
     st.textContent='Salvando '+newCount+' marcacoes...';
     db.collection('marks').doc('data').set({marks:merged}).then(function(){
+      marks=merged;
       st.textContent='OK: '+newCount+' marcacoes importadas!';
+      renderAll();buildDaysGrid();
       setTimeout(function(){st.textContent='';},4000);
     }).catch(function(e){st.textContent='Erro: '+e.message;});
   }).catch(function(e){st.textContent='Erro: '+e.message;});
