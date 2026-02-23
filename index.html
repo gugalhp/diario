@@ -578,16 +578,25 @@ function renderMarcar(){
       var va=getDisplayStatus(p.id,'A');
       var vf=getDisplayStatus(p.id,'F');
       var st=getStats(p.id,selMonth);
-      var rowBg=isSel?'rgba(99,102,241,.12)':va==='B'?'rgba(16,185,129,.08)':va==='S'?'rgba(245,158,11,.07)':va==='N'?'rgba(239,68,68,.07)':'rgba(255,255,255,.03)';
+      // Monthly percentage for row color when no day selected
+      var mTotal=MONTHS[selMonth].days;
+      var mB=st.ab; var mN=st.an; var mS=st.as;
+      var mPct=Math.round((mB/mTotal)*100);
+      var mColor=mB>0?'rgba(16,185,129,':mN>mS?'rgba(239,68,68,':'rgba(245,158,11,';
+      var rowBg=isSel?'rgba(99,102,241,.12)':va==='B'?'rgba(16,185,129,.08)':va==='S'?'rgba(245,158,11,.07)':va==='N'?'rgba(239,68,68,.07)':(mB>0?'rgba(16,185,129,.06)':'rgba(255,255,255,.03)');
       var rowBd=isSel?'1px solid rgba(99,102,241,.4)':va==='B'?'1px solid rgba(16,185,129,.25)':'1px solid rgba(255,255,255,.07)';
       var vaC=va==='B'?'st-B':va==='S'?'st-S':va==='N'?'st-N':va==='mix'?'st-mix':'st-none';
       var vfC=vf==='B'?'st-B':vf==='S'?'st-S':vf==='N'?'st-N':vf==='mix'?'st-mix':'st-none';
       var vaL=va==='mix'?'±':(va||'—');
       var vfL=vf==='mix'?'±':(vf||'—');
-      // Use data-pid and data-af instead of inline string params
+      var pctColor=mPct>=70?'#10b981':mPct>=40?'#f59e0b':'#ef4444';
       html+='<div class="person-row'+(isSel?' p-sel':'')+'" style="background:'+rowBg+';border:'+rowBd+'" data-pid="'+p.id+'" onclick="rowClick(this)">'+
         '<div class="p-check'+(isSel?' checked':'')+'">'+(isSel?'✓':'')+'</div>'+
-        '<div style="font-size:13px;font-weight:'+(p.isLeader?700:400)+'">'+(p.isLeader?'👑 ':'')+p.name+'</div>'+
+        '<div>'+
+          '<div style="font-size:13px;font-weight:'+(p.isLeader?700:400)+'">'+(p.isLeader?'👑 ':'')+p.name+'</div>'+
+          '<div style="margin-top:3px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);width:100px">'+
+            '<div style="height:100%;width:'+mPct+'%;border-radius:2px;background:'+pctColor+'"></div></div>'+
+        '</div>'+
         '<div class="af-col">'+
           '<div class="af-lbl">A</div>'+
           '<button class="status-btn '+vaC+'" data-pid="'+p.id+'" data-af="A" onclick="stClick(event,this)">'+vaL+'</button>'+
@@ -596,10 +605,9 @@ function renderMarcar(){
           '<div class="af-lbl">F</div>'+
           '<button class="status-btn '+vfC+'" data-pid="'+p.id+'" data-af="F" onclick="stClick(event,this)">'+vfL+'</button>'+
         '</div>'+
-        '<div class="pstat">'+
-          '<div style="color:#10b981">B:'+st.ab+'/'+st.fb+'</div>'+
-          '<div style="color:#f59e0b">S:'+st.as+'/'+st.fs+'</div>'+
-          '<div style="color:#ef4444">N:'+st.an+'/'+st.fn+'</div>'+
+        '<div class="pstat" style="text-align:right;min-width:44px">'+
+          '<div style="font-size:14px;font-weight:700;color:'+pctColor+'">'+mPct+'%</div>'+
+          '<div style="font-size:10px;color:#64748b">'+mB+'B '+mN+'N'+(mS?' '+mS+'S':'')+'</div>'+
         '</div>'+
       '</div>';
     });
