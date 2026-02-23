@@ -351,15 +351,18 @@ function initApp(){
 
 function startListening(){
   populateFilters();buildMonthBtns();buildWeekTabsM();buildDaysGrid();renderAll();
-  db.collection('marks').doc('data').onSnapshot(function(s){
-    var remote=s.exists?(s.data().marks||{}):{};
-    // Only update if remote has data or we don't have local data yet
-    if(Object.keys(remote).length>0 || Object.keys(marks).length===0){
-      marks=remote;
-    }
-    setSyncStatus('dok','Sincronizado ('+Object.keys(marks).length+')');
+  // Use get() first to guarantee we have the latest data, then watch for changes
+  db.collection('marks').doc('data').get().then(function(snap){
+    marks=snap.exists?(snap.data().marks||{}):{};
+    setSyncStatus('dok','Carregado: '+Object.keys(marks).length+' marcacoes');
     renderAll();buildDaysGrid();
-  },function(){setSyncStatus('derr','Erro de conexao');});
+    // Now attach live listener for future changes
+    db.collection('marks').doc('data').onSnapshot(function(s){
+      marks=s.exists?(s.data().marks||{}):{};
+      setSyncStatus('dok','Sincronizado: '+Object.keys(marks).length);
+      renderAll();buildDaysGrid();
+    },function(){setSyncStatus('derr','Erro de conexao');});
+  });
 }
 
 function saveMarks(){
