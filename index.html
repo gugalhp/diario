@@ -243,9 +243,9 @@ select.ifield{background:rgba(20,20,50,.95);cursor:pointer}
       <div style="font-size:11px;color:#64748b;padding-left:27px">Marque se esta pessoa acompanha outras pessoas</div>
     </div>
 
-    <!-- Acompanhador responsável (só aparece se NÃO for acompanhador) -->
+    <!-- Quem acompanha esta pessoa (pode ter supervisor mesmo sendo acompanhador) -->
     <div id="supervisor-field" class="mfield" style="margin-bottom:20px">
-      <label>Quem acompanha esta pessoa?</label>
+      <label>Quem acompanha esta pessoa? <span style="font-weight:400;color:#64748b;font-size:10px">(opcional)</span></label>
       <select class="ifield" id="modal-supervisor" style="width:100%"></select>
     </div>
 
@@ -643,65 +643,138 @@ function stClick(e,btn){
   renderMarcar();buildDaysGrid();schSave();
 }
 
+// Ordem fixa dos acompanhadores na prévia (conforme definido)
+var PREVIEW_SUPERVISOR_ORDER = [
+  'Poliana Clarissa','Angélica','Taty do Sirlandio','Tatiane do Gustavo',
+  'Cleberson Rodrigues','Lucas da Angélica','Sirlandio','Gustavo',
+  'Angélica','Maria','Aline','Elaine','Tatiana do Vitor',
+  'Lucas da Angélica','Ricardo','Luccas (Aline)','Jailton','Vitor',
+  'Taty do Sirlandio','Célia','Michelly','Regina','Paula',
+  'Sirlândio','Henrique','Anderson da Michelly','Cleverson','Irineu',
+  'Paula','Tina','Samantha','Adriana do Adelson',
+  'Irineu Dos Reis','José','Sandro','Adelson',
+  'Célia','Adriana do Cristiano','Vanessa','Débora',
+  'Henrique','Cristiano','Eleanderson','Bruno',
+  'Maria','Priscila','Ana Paula Pó','Jaciene','Thalita',
+  'Ricardo','Celso','Carlos Pó','Jocival','Rodrigo',
+  'Tati do Gustavo','Karina','Liliane','Andrea do Ailton',
+  'Gustavo','Robson','Helio','Ailton',
+  'Aline do Luccas','Tamires',
+  'Luccas da Aline','Wellington',
+  'Samantha','Rosana',
+  'Sandro'
+];
+
 function renderPreview(){
-  var gf=(document.getElementById('group-filter-preview')||{value:'Todos'}).value;
-  var fp=getFiltered(gf,'');
   var month=prevMonth;
   var allWeeks=getWeeks(month);
   var daysToShow=prevWeek===-1?(function(){var a=[];for(var d=1;d<=MONTHS[month].days;d++)a.push(d);return a;})():(allWeeks[prevWeek]||allWeeks[0]);
 
-  var th='<tr><th style="min-width:130px;text-align:left;padding-left:8px">Pessoa</th>';
-  daysToShow.forEach(function(d){
+  // Helper: column border on week change
+  function weekBorder(d){
+    if(prevWeek!==-1) return '';
     var isNew=false;
-    if(prevWeek===-1)allWeeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNew=true;});
-    th+='<th colspan="2" style="'+(isNew?'border-left:2px solid rgba(245,158,11,.4)':'')+' min-width:40px">'+d+'</th>';
+    allWeeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNew=true;});
+    return isNew?'border-left:2px solid rgba(245,158,11,.4)':'';
+  }
+
+  // Helper: render one person row
+  function personRow(p, indent){
+    var tB=0, tot=daysToShow.length*2;
+    var cells='';
+    daysToShow.forEach(function(d){
+      var bd=weekBorder(d);
+      var va=marks[mk(month,d,p.id,'A')]||null;
+      var vf=marks[mk(month,d,p.id,'F')]||null;
+      if(va==='B')tB++; if(vf==='B')tB++;
+      cells+='<td style="'+bd+'"><div class="pc pc'+(va||'E')+'">'+(va||'.')+'</div></td>'+
+             '<td><div class="pc pc'+(vf||'E')+'">'+(vf||'.')+'</div></td>';
+    });
+    var pct=tot?Math.round((tB/tot)*100):0;
+    var pc=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+    var nameStyle=indent
+      ?'padding-left:18px;font-size:11px;color:#94a3b8'
+      :'font-size:12px;font-weight:700;color:#c4b5fd';
+    var prefix=indent?'└ ':'🔷 ';
+    return '<tr><td style="'+nameStyle+'">'+prefix+p.name+'</td>'+cells+
+           '<td style="font-weight:700;color:'+pc+';font-size:12px">'+pct+'%</td></tr>';
+  }
+
+  // Build header
+  var colSpan=daysToShow.length*2+2;
+  var th='<tr><th style="min-width:140px;text-align:left;padding-left:8px">Pessoa</th>';
+  daysToShow.forEach(function(d){
+    th+='<th colspan="2" style="'+weekBorder(d)+';min-width:40px">'+d+'</th>';
   });
-  th+='<th style="min-width:46px">%B</th></tr>';
+  th+='<th style="min-width:46px">%</th></tr>';
   th+='<tr><th></th>';
   daysToShow.forEach(function(d){
-    var isNew=false;
-    if(prevWeek===-1)allWeeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNew=true;});
-    th+='<th style="font-size:9px;color:#94a3b8;'+(isNew?'border-left:2px solid rgba(245,158,11,.4)':'')+'">A</th><th style="font-size:9px;color:#94a3b8">F</th>';
+    th+='<th style="font-size:9px;color:#94a3b8;'+weekBorder(d)+'">A</th>'+
+        '<th style="font-size:9px;color:#94a3b8">F</th>';
   });
   th+='<th></th></tr>';
 
-  var grouped={};
-  fp.forEach(function(p){if(!grouped[p.groupId])grouped[p.groupId]=[];grouped[p.groupId].push(p);});
+  // Build blocks: walk PREVIEW_SUPERVISOR_ORDER
+  // Each name that is isLeader starts a new block; names after it (until next leader) are their acompanhados
   var rows='';
-  groups.forEach(function(g){
-    if(!grouped[g.id]||!grouped[g.id].length)return;
-    rows+='<tr><td colspan="'+(daysToShow.length*2+2)+'" style="padding:5px 8px;background:'+g.color+'15;color:'+g.color+';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">'+g.name+'</td></tr>';
-    grouped[g.id].forEach(function(p){
-      var tB=0,tot=daysToShow.length*2;
-      rows+='<tr><td>'+(p.isLeader?'👑 ':'')+p.name+'</td>';
-      daysToShow.forEach(function(d){
-        var isNew=false;
-        if(prevWeek===-1)allWeeks.forEach(function(w,wi){if(wi>0&&w[0]===d)isNew=true;});
-        var bd=isNew?'border-left:2px solid rgba(245,158,11,.4)':'';
-        var va=marks[mk(month,d,p.id,'A')]||null;
-        var vf=marks[mk(month,d,p.id,'F')]||null;
-        if(va==='B')tB++;if(vf==='B')tB++;
-        rows+='<td style="'+bd+'"><div class="pc pc'+(va||'E')+'">'+(va||'.')+'</div></td><td><div class="pc pc'+(vf||'E')+'">'+(vf||'.')+'</div></td>';
-      });
-      var pct=Math.round((tB/tot)*100);
-      var pc=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
-      rows+='<td style="font-weight:700;color:'+pc+';font-size:12px">'+pct+'%</td></tr>';
+  var nameToP={};
+  people.forEach(function(p){ nameToP[p.name]=p; });
+
+  // Parse the order list into blocks: [{supervisor, members:[]}]
+  var blocks=[];
+  var cur=null;
+  PREVIEW_SUPERVISOR_ORDER.forEach(function(name){
+    var p=nameToP[name];
+    if(!p) return;
+    if(p.isLeader){
+      cur={supervisor:p, members:[]};
+      blocks.push(cur);
+    } else {
+      if(cur) cur.members.push(p);
+      else blocks.push({supervisor:null, members:[p]}); // orphan
+    }
+  });
+
+  blocks.forEach(function(block){
+    if(!block.supervisor) return;
+    var sup=block.supervisor;
+
+    // Block header row (supervisor)
+    rows+='<tr style="background:rgba(99,102,241,.08)"><td colspan="'+colSpan+'" style="padding:6px 10px;border-top:2px solid rgba(99,102,241,.3)">'+
+      '<span style="font-size:12px;font-weight:700;color:#a5b4fc">🔷 '+sup.name+'</span>'+
+      '<span style="font-size:10px;color:#64748b;margin-left:8px">'+block.members.length+' acompanhado'+(block.members.length!==1?'s':'')+'</span>'+
+    '</td></tr>';
+
+    // Supervisor own marks row
+    rows+=personRow(sup, false);
+
+    // Member rows
+    block.members.forEach(function(p){
+      rows+=personRow(p, true);
     });
   });
+
   document.getElementById('preview-table').innerHTML='<thead>'+th+'</thead><tbody>'+rows+'</tbody>';
 
+  // Stats cards por acompanhador
   var html='';
-  groups.forEach(function(g){
-    var grp=getFiltered(g.id,'');if(!grp.length)return;
-    var tB=0,tot=grp.length*MONTHS[month].days*2;
-    grp.forEach(function(p){var s=getStats(p.id,month);tB+=s.ab+s.fb;});
+  blocks.forEach(function(block){
+    if(!block.supervisor||!block.members.length) return;
+    var tB=0, tot=block.members.length*daysToShow.length*2;
+    block.members.forEach(function(p){
+      daysToShow.forEach(function(d){
+        if(marks[mk(month,d,p.id,'A')]==='B') tB++;
+        if(marks[mk(month,d,p.id,'F')]==='B') tB++;
+      });
+    });
     var pct=tot?Math.round((tB/tot)*100):0;
     var pc=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
-    html+='<div style="flex:1;min-width:130px;background:'+g.color+'12;border:1px solid '+g.color+'33;border-radius:12px;padding:12px">'+
-      '<div style="font-size:11px;font-weight:700;color:'+g.color+';margin-bottom:4px">'+g.name+'</div>'+
-      '<div style="font-size:20px;font-weight:800;color:'+pc+'">'+pct+'%</div>'+
-      '<div style="font-size:10px;color:#64748b">'+grp.length+' pessoas</div>'+
-      '<div style="margin-top:6px;height:3px;border-radius:2px;background:rgba(255,255,255,.1)"><div style="height:100%;width:'+pct+'%;border-radius:2px;background:'+g.color+'"></div></div></div>';
+    html+='<div style="flex:1;min-width:130px;max-width:180px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:10px">'+
+      '<div style="font-size:10px;font-weight:700;color:#a5b4fc;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔷 '+block.supervisor.name+'</div>'+
+      '<div style="font-size:18px;font-weight:800;color:'+pc+'">'+pct+'%</div>'+
+      '<div style="font-size:10px;color:#64748b">'+block.members.length+' acomp.</div>'+
+      '<div style="margin-top:5px;height:3px;border-radius:2px;background:rgba(255,255,255,.1)"><div style="height:100%;width:'+pct+'%;border-radius:2px;background:'+pc+'"></div></div>'+
+    '</div>';
   });
   document.getElementById('preview-stats').innerHTML=html;
 }
@@ -722,7 +795,7 @@ function deleteGroup(gid){
 }
 function toggleLeader(pid){
   var p=people.find(function(x){return x.id===pid;});
-  if(p){p.isLeader=!p.isLeader;if(p.isLeader)p.supervisorId=null;savePeopleDB();renderAdmin();renderMarcar();}
+  if(p){p.isLeader=!p.isLeader;savePeopleDB();renderAdmin();renderMarcar();}
 }
 function deletePerson(pid){
   if(!confirm('Remover pessoa?'))return;
@@ -834,9 +907,8 @@ function changeSupervisor(pid, val){
 }
 
 function toggleSupervisorField(){
-  var isAcomp=document.getElementById('modal-leader').checked;
-  // Se É acompanhador → esconde o campo "quem acompanha"; se não é → mostra
-  document.getElementById('supervisor-field').style.display=isAcomp?'none':'block';
+  // Sempre mostra o campo — pessoa pode ser acompanhador E ter um acompanhador responsável
+  document.getElementById('supervisor-field').style.display='block';
 }
 function populateSupervisorSelect(currentSupervisorId){
   var sel=document.getElementById('modal-supervisor');
@@ -867,7 +939,7 @@ function openEdit(pid){
   document.getElementById('modal-title').textContent='Editar: '+p.name;
   document.getElementById('modal-name').value=p.name;
   document.getElementById('modal-leader').checked=!!p.isLeader;
-  document.getElementById('supervisor-field').style.display=p.isLeader?'none':'block';
+  document.getElementById('supervisor-field').style.display='block';
   populateSupervisorSelect(p.supervisorId||null);
   populateFilters();
   document.getElementById('modal-group').value=p.groupId;
@@ -879,7 +951,7 @@ function savePerson(){
   var gid=document.getElementById('modal-group').value;
   var isAcomp=document.getElementById('modal-leader').checked;
   var supVal=document.getElementById('modal-supervisor').value;
-  var supervisorId=(!isAcomp&&supVal)?parseInt(supVal):null;
+  var supervisorId=supVal?parseInt(supVal):null;
   if(!name){alert('Digite o nome.');return;}
   if(editingPid){
     var p=people.find(function(x){return x.id===editingPid;});
