@@ -233,10 +233,22 @@ select.ifield{background:rgba(20,20,50,.95);cursor:pointer}
     <h3 id="modal-title">Adicionar Pessoa</h3>
     <div class="mfield"><label>Nome</label><input class="ifield" id="modal-name" placeholder="Nome completo" style="width:100%"></div>
     <div class="mfield"><label>Grupo</label><select class="ifield" id="modal-group" style="width:100%"></select></div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-      <input type="checkbox" id="modal-leader" style="width:16px;height:16px;cursor:pointer">
-      <label for="modal-leader" style="font-size:13px;cursor:pointer">👑 É líder</label>
+
+    <!-- É acompanhador? -->
+    <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <input type="checkbox" id="modal-leader" style="width:17px;height:17px;cursor:pointer;accent-color:#6366f1" onchange="toggleSupervisorField()">
+        <label for="modal-leader" style="font-size:13px;font-weight:600;cursor:pointer;color:#a5b4fc">🔷 É acompanhador</label>
+      </div>
+      <div style="font-size:11px;color:#64748b;padding-left:27px">Marque se esta pessoa acompanha outras pessoas</div>
     </div>
+
+    <!-- Acompanhador responsável (só aparece se NÃO for acompanhador) -->
+    <div id="supervisor-field" class="mfield" style="margin-bottom:20px">
+      <label>Quem acompanha esta pessoa?</label>
+      <select class="ifield" id="modal-supervisor" style="width:100%"></select>
+    </div>
+
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-gold" onclick="savePerson()">💾 Salvar</button>
@@ -710,7 +722,7 @@ function deleteGroup(gid){
 }
 function toggleLeader(pid){
   var p=people.find(function(x){return x.id===pid;});
-  if(p){p.isLeader=!p.isLeader;savePeopleDB();renderAdmin();renderMarcar();}
+  if(p){p.isLeader=!p.isLeader;if(p.isLeader)p.supervisorId=null;savePeopleDB();renderAdmin();renderMarcar();}
 }
 function deletePerson(pid){
   if(!confirm('Remover pessoa?'))return;
@@ -720,46 +732,143 @@ function deletePerson(pid){
 
 function renderAdmin(){
   var html='';
-  groups.forEach(function(g){
-    var gp=people.filter(function(p){return p.groupId===g.id;});
-    html+='<div class="adm-card"><div class="adm-hdr">'+
-      '<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">'+
-      '<span style="width:13px;height:13px;border-radius:50%;background:'+g.color+';display:inline-block"></span>'+
-      g.name+' <span style="font-size:12px;color:#64748b;font-weight:400">'+gp.length+' pessoas</span></div>'+
-      '<div style="display:flex;gap:6px">'+
-      '<button class="btn btn-success" data-gid="'+g.id+'" onclick="openAdd(this.dataset.gid)">➕ Add</button>'+
-      '<button class="btn" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:12px" data-gid="'+g.id+'" onclick="deleteGroup(this.dataset.gid)">🗑️ Excluir grupo</button>'+
-      '</div></div>';
-    if(!gp.length){html+='<div style="font-size:12px;color:#4a5568;padding:6px">Nenhuma pessoa.</div>';}
-    else gp.forEach(function(p){
-      html+='<div class="adm-person">'+
-        '<span class="adm-name">'+(p.isLeader?'👑 ':'')+p.name+'</span>'+
-        '<button class="btn" style="font-size:11px;padding:3px 8px;background:'+(p.isLeader?'rgba(245,158,11,.2)':'rgba(255,255,255,.08)')+';color:'+(p.isLeader?'#f59e0b':'#64748b')+'" data-pid="'+p.id+'" onclick="toggleLeader(parseInt(this.dataset.pid))">'+(p.isLeader?'👑 Líder':'Líder?')+'</button>'+
-        '<button class="bico bmove" data-pid="'+p.id+'" onclick="openMove(parseInt(this.dataset.pid))">↕️</button>'+
+
+  // ── Árvore ──────────────────────────────────────────────
+  html+='<div class="adm-card">'+
+    '<div class="adm-hdr">'+
+      '<div style="font-size:15px;font-weight:700;color:#c4b5fd">🌳 Árvore de Acompanhamento</div>'+
+      '<button class="btn btn-success" onclick="openAdd(\'acompanhador\')">➕ Nova pessoa</button>'+
+    '</div>'+
+    '<div style="font-size:11px;color:#64748b;margin-bottom:12px">'+
+      '🔷 <b style="color:#a5b4fc">Acompanhador</b> = lidera outras pessoas &nbsp;|&nbsp; '+
+      'Use o dropdown ao lado de cada pessoa para definir quem a acompanha'+
+    '</div>';
+
+  function buildSupOpts(p){
+    var o='<option value=""'+((!p.supervisorId)?' selected':'')+'>— ninguém (raiz) —</option>';
+    var list=people.filter(function(x){return x.isLeader && x.id!==p.id;});
+    list.sort(function(a,b){return a.name.localeCompare(b.name,'pt');});
+    list.forEach(function(s){
+      o+='<option value="'+s.id+'"'+((p.supervisorId===s.id)?' selected':'')+'>'+s.name+'</option>';
+    });
+    return o;
+  }
+
+  function renderNode(parentId, depth){
+    var kids=people.filter(function(p){
+      return (p.supervisorId||null)===(parentId||null);
+    });
+    kids.sort(function(a,b){
+      if(a.isLeader && !b.isLeader) return -1;
+      if(!a.isLeader && b.isLeader) return 1;
+      return a.name.localeCompare(b.name,'pt');
+    });
+    kids.forEach(function(p){
+      var ml=depth*20;
+      var isAcomp=p.isLeader;
+      var bg=isAcomp?'rgba(99,102,241,.10)':'rgba(255,255,255,.03)';
+      var bl=isAcomp?'3px solid #6366f1':'3px solid rgba(255,255,255,.07)';
+      var badge=isAcomp
+        ?'<span style="font-size:10px;background:rgba(99,102,241,.3);color:#c7d2fe;padding:1px 8px;border-radius:20px;margin-left:8px;white-space:nowrap">🔷 acompanhador</span>'
+        :'<span style="font-size:10px;background:rgba(255,255,255,.06);color:#64748b;padding:1px 8px;border-radius:20px;margin-left:8px;white-space:nowrap">acompanhado</span>';
+      var connector=depth>0?'<span style="color:#475569;margin-right:4px">└─</span>':'';
+
+      html+='<div style="margin-left:'+ml+'px;background:'+bg+';border-left:'+bl+
+        ';border-radius:7px;margin-bottom:4px;padding:7px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+        // Nome + badge
+        '<div style="flex:1;min-width:0;display:flex;align-items:center;overflow:hidden">'+
+          connector+
+          '<span style="font-size:13px;font-weight:'+(isAcomp?700:400)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+'</span>'+
+          badge+
+        '</div>'+
+        // Botão toggle acompanhador
+        '<button style="font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid '+(isAcomp?'#6366f1':'rgba(255,255,255,.15)')+
+          ';background:'+(isAcomp?'rgba(99,102,241,.2)':'rgba(255,255,255,.05)')+
+          ';color:'+(isAcomp?'#a5b4fc':'#64748b')+';cursor:pointer;white-space:nowrap" '+
+          'data-pid="'+p.id+'" onclick="toggleLeader(parseInt(this.dataset.pid))">'+
+          (isAcomp?'✓ Acompanhador':'+ Acompanhador')+
+        '</button>'+
+        // Dropdown: quem acompanha esta pessoa
+        (isAcomp?'':'<select style="font-size:11px;background:#1e293b;color:#cbd5e1;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:2px 4px;max-width:150px;cursor:pointer" '+
+          'data-pid="'+p.id+'" onchange="changeSupervisor(parseInt(this.dataset.pid),this.value)">'+buildSupOpts(p)+'</select>')+
+        // Editar / excluir
         '<button class="bico bedit" data-pid="'+p.id+'" onclick="openEdit(parseInt(this.dataset.pid))">✏️</button>'+
         '<button class="bico bdanger" data-pid="'+p.id+'" onclick="deletePerson(parseInt(this.dataset.pid))">🗑️</button>'+
       '</div>';
+      renderNode(p.id, depth+1);
     });
-    html+='</div>';
+  }
+
+  renderNode(null, 0);
+  html+='</div>';
+
+  // ── Grupos ───────────────────────────────────────────────
+  html+='<div class="adm-card" style="margin-top:12px">'+
+    '<div class="adm-hdr">'+
+      '<div style="font-size:14px;font-weight:700;color:#94a3b8">📁 Grupos</div>'+
+      '<button class="btn btn-success" onclick="openAddGroup()">➕ Novo grupo</button>'+
+    '</div>';
+  groups.forEach(function(g){
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+      '<span style="width:12px;height:12px;border-radius:50%;background:'+g.color+';flex-shrink:0;display:inline-block"></span>'+
+      '<span style="font-size:13px;flex:1">'+g.name+'</span>'+
+      '<span style="font-size:11px;color:#64748b">'+people.filter(function(p){return p.groupId===g.id;}).length+' pessoas</span>'+
+      '<button class="btn" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:11px;padding:2px 8px" '+
+        'data-gid="'+g.id+'" onclick="deleteGroup(this.dataset.gid)">🗑️</button>'+
+    '</div>';
   });
+  html+='</div>';
+
   document.getElementById('admin-groups-list').innerHTML=html;
 }
 
+function openAddGroup(){
+  document.getElementById('new-group-name').focus();
+}
+
+function changeSupervisor(pid, val){
+  var p=people.find(function(x){return x.id===pid;});
+  if(!p) return;
+  p.supervisorId = val ? parseInt(val) : null;
+  savePeopleDB(); renderAdmin(); renderMarcar();
+}
+
+function toggleSupervisorField(){
+  var isAcomp=document.getElementById('modal-leader').checked;
+  // Se É acompanhador → esconde o campo "quem acompanha"; se não é → mostra
+  document.getElementById('supervisor-field').style.display=isAcomp?'none':'block';
+}
+function populateSupervisorSelect(currentSupervisorId){
+  var sel=document.getElementById('modal-supervisor');
+  sel.innerHTML='<option value="">— sem acompanhador (raiz) —</option>';
+  var list=people.filter(function(x){return x.isLeader&&x.id!==editingPid;});
+  list.sort(function(a,b){return a.name.localeCompare(b.name,'pt');});
+  list.forEach(function(s){
+    var o=document.createElement('option');
+    o.value=s.id; o.textContent=s.name;
+    if(s.id===currentSupervisorId) o.selected=true;
+    sel.appendChild(o);
+  });
+}
 function openAdd(gid){
   editingPid=null;
   document.getElementById('modal-title').textContent='Adicionar Pessoa';
   document.getElementById('modal-name').value='';
   document.getElementById('modal-leader').checked=false;
+  document.getElementById('supervisor-field').style.display='block';
+  populateSupervisorSelect(null);
   populateFilters();
-  document.getElementById('modal-group').value=gid;
+  document.getElementById('modal-group').value=gid||'acompanhador';
   document.getElementById('modal-person').classList.add('open');
 }
 function openEdit(pid){
   var p=people.find(function(x){return x.id===pid;});if(!p)return;
   editingPid=pid;
-  document.getElementById('modal-title').textContent='Editar Pessoa';
+  document.getElementById('modal-title').textContent='Editar: '+p.name;
   document.getElementById('modal-name').value=p.name;
-  document.getElementById('modal-leader').checked=p.isLeader;
+  document.getElementById('modal-leader').checked=!!p.isLeader;
+  document.getElementById('supervisor-field').style.display=p.isLeader?'none':'block';
+  populateSupervisorSelect(p.supervisorId||null);
   populateFilters();
   document.getElementById('modal-group').value=p.groupId;
   document.getElementById('modal-person').classList.add('open');
@@ -768,13 +877,15 @@ function closeModal(){document.getElementById('modal-person').classList.remove('
 function savePerson(){
   var name=document.getElementById('modal-name').value.trim();
   var gid=document.getElementById('modal-group').value;
-  var leader=document.getElementById('modal-leader').checked;
+  var isAcomp=document.getElementById('modal-leader').checked;
+  var supVal=document.getElementById('modal-supervisor').value;
+  var supervisorId=(!isAcomp&&supVal)?parseInt(supVal):null;
   if(!name){alert('Digite o nome.');return;}
   if(editingPid){
     var p=people.find(function(x){return x.id===editingPid;});
-    if(p){p.name=name;p.groupId=gid;p.isLeader=leader;}
+    if(p){p.name=name;p.groupId=gid;p.isLeader=isAcomp;p.supervisorId=supervisorId;}
   } else {
-    people.push({id:nextId++,groupId:gid,name:name,isLeader:leader});
+    people.push({id:nextId++,groupId:gid,name:name,isLeader:isAcomp,supervisorId:supervisorId});
   }
   savePeopleDB();closeModal();populateFilters();renderAdmin();renderMarcar();
 }
